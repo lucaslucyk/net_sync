@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -38,9 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # third
+    'django_extensions',
+
     # own
     'apps.applications',
 ]
+
+SHELL_PLUS = 'notebook'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -174,7 +178,7 @@ CONFIG_FUNCS = {
         },
         'to': {
             'nettime6': {
-                'method': 'post_nt_employees',
+                'method': 'post_nt6_employees',
                 'args': [{
                     # translate an app field to another app
                     'name': 'refer',

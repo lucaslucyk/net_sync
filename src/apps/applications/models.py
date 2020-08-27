@@ -18,7 +18,7 @@ class Credential(models.Model):
     comment = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return self.get_application_display()
+        return f'{self.get_application_display()} | {self.comment}'
 
 class CredentialParameter(models.Model):
 
@@ -79,6 +79,40 @@ class Sync(models.Model):
     is_valid.short_description = "Is valid"
     is_valid.boolean = True
 
+
+    def run(self):
+
+        # get configs
+        origin_app = self.origin.application
+        destiny_app = self.destiny.application
+
+        # config from setting
+        sync_cfg = settings.CONFIG_FUNCS.get(self.synchronize)
+
+        # get methods
+        origin_method = sync_cfg.get('from').get(origin_app).get('method')
+        destiny_method = sync_cfg.get('to').get(destiny_app).get('method')
+
+        # str to method
+        get_method = getattr(self, origin_method)
+        post_method = getattr(self, destiny_method)
+
+        # mapping req parameters with application values
+        app_origin_params = self.syncparameter_set.filter(use_in='origin')
+        app_dest_params = self.syncparameter_set.filter(use_in='destiny')
+
+        # parse elements
+        parse_origin_params = {p.key: eval(p.value) for p in app_origin_params}
+        parse_dest_params = {p.key: eval(p.value) for p in app_dest_params}
+
+        #print(parse_dest_params)
+
+        # executing methods
+        origin_response = get_method(**parse_origin_params)
+        destiny_response = post_method(origin_response, **parse_dest_params)
+
+        #print(origin_response)
+
     def open_nt6_connection(self, source: str):
         """
         Create and return a nettime client.
@@ -87,9 +121,9 @@ class Sync(models.Model):
 
         # connection params
         params = getattr(self, source).credentialparameter_set.all()
-        host = params.filter(key='host').first()
-        username = params.filter(key='user').first()
-        pwd = params.filter(key='password').first()
+        host = params.filter(key='host').first().value
+        username = params.filter(key='user').first().value
+        pwd = params.filter(key='password').first().value
 
         return nt6.Client(url=host, username=username, pwd=pwd)
 
@@ -107,18 +141,39 @@ class Sync(models.Model):
 
         return visma.Client(url=host, username=username, pwd=pwd)
 
-    def get_nt_employees(self, fields: list = None):
+    def get_nt6_timetypes(self, client: nt6.Client):
+        
+        nt_incidencias = client.get_elements("Incidencia").get('items')
+
+        incidencias = []
+        for incidencia in nt_incidencias:
+            incidencias.append({"id": incidencia.get("id")})
+
+        return incidencias
+
+    def get_nt6_readers(self, client: nt6.Client):
+
+        nt_readers = client.get_elements("Lector").get('items')
+
+        readers = []
+        for reader in nt_readers:
+            readers.append({"id": reader.get("id")})
+
+        return readers
+
+    def get_nt6_employees(self, fields: list, filterExp: str = None):
 
         # open api connection
         client = self.open_nt6_connection(source="origin")
         
-        # fields to synchronize
-        fields = ["nif", "name", "nameEmployee", "LastName"]
-        
         # prepare nt query with fields
+        # add expression for ignore old migrations (this.modified >= lastSync)
         query = nt6.Query(
             fields=fields,
-            filterExp='(true = true) && (1 = 1)'
+            filterExp='{}(this.modified >= "{}")'.format(
+                f'({filterExp}) && ' if filterExp else '',
+                '2020-08-26'
+            )
         )
 
         # get employees
@@ -130,19 +185,10 @@ class Sync(models.Model):
         # return employees results. Empty list by default
         return employees.get('items', [])
 
-    def post_nt_employees(self, employees: list, refer: dict):
+    def post_nt6_employees(self, employees: list, refer: dict):
         
         # open api connection
         client = self.open_nt6_connection(source="destiny")
-
-        # match fields between apps
-        refer = {
-            # destiny : origin
-            'nif': 'nif',
-            'name': 'name',
-            'nameEmployee': 'nameEmployee',
-            'LastName': 'LastName'
-        }
 
         # employee structure
         data = {"container": "Persona"}
@@ -167,7 +213,12 @@ class Sync(models.Model):
                 
                 # create element
                 else:
+                    # create form and assign all timetypes and readers
                     dataObj = client.get_create_form(container="Persona")
+                    dataObj.update({
+                        "TimeTypesEmployee": self.get_nt6_timetypes(client),
+                        "Readers": self.get_nt6_readers(client)
+                    })
                     
                     # delete elements kw
                     if data.get("elements", None):
@@ -195,10 +246,23 @@ class SyncParameter(models.Model):
     )
 
     key = models.CharField(max_length=50, null=True, blank=True)
-    value = models.CharField(max_length=50, null=True, blank=True)
+    value = models.CharField(max_length=250, null=True, blank=True)
 
     def __str__(self):
         return str(self.sync)
+
+
+class SyncHistory(models.Model):
+
+    sync = models.ForeignKey("Sync", on_delete=models.CASCADE)
+    date_time = models.DateTimeField(auto_now_add=True)
+    ok = models.BooleanField(default=True)
+
+    error = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.sync} | {self.date_time.strftime("%d/%m/%Y %H:%M:%S")}'
+    
     
 
 

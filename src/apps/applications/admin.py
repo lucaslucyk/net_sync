@@ -42,6 +42,7 @@ class SyncParamsInline(admin.StackedInline):
     model = models.SyncParameter
     extra = 0
     ordering = ("sync__synchronize", 'key')
+    form = forms.SyncParameterForm
 
 
 @admin.register(models.Sync)
@@ -52,4 +53,27 @@ class SyncsAdmin(admin.ModelAdmin):
     list_display = ('synchronize', 'origin', 'destiny', 'is_valid')
 
     autocomplete_fields = ["origin", "destiny"]
+
+    actions = ['execute']
+
+    def execute(self, request, queryset):
+        for sync in queryset:
+            sync.run()
+
+    execute.short_description = "Execute"
+
+@admin.register(models.SyncHistory)
+class SyncHistoryAdmin(admin.ModelAdmin):
+
+    readonly_fields = ["sync", "ok", "date_time", "error"]
+    list_display = ["sync", "date_time", "ok"]
+
+    def has_add_permission(self, request, obj=None):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
