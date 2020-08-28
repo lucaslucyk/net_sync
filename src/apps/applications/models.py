@@ -2,8 +2,10 @@ from django.db import models
 from django.conf import settings
 
 # own
-from utils import visma
-from utils import nettime6 as nt6
+from utils.connectors import visma
+from utils.connectors import nettime6 as nt6
+from utils import processors as procs
+from utils.api import FieldDefinition
 
 class Credential(models.Model):
 
@@ -82,36 +84,54 @@ class Sync(models.Model):
 
     def run(self):
 
-        # get configs
-        origin_app = self.origin.application
-        destiny_app = self.destiny.application
+        try:
+            # get configs
+            origin_app = self.origin.application
+            destiny_app = self.destiny.application
 
-        # config from setting
-        sync_cfg = settings.CONFIG_FUNCS.get(self.synchronize)
+            # config from setting
+            sync_cfg = settings.CONFIG_FUNCS.get(self.synchronize)
 
-        # get methods
-        origin_method = sync_cfg.get('from').get(origin_app).get('method')
-        destiny_method = sync_cfg.get('to').get(destiny_app).get('method')
+            # get methods
+            origin_method = sync_cfg.get('from').get(origin_app).get('method')
+            destiny_method = sync_cfg.get('to').get(destiny_app).get('method')
 
-        # str to method
-        get_method = getattr(self, origin_method)
-        post_method = getattr(self, destiny_method)
+            # str to method
+            get_method = getattr(self, origin_method)
+            post_method = getattr(self, destiny_method)
 
-        # mapping req parameters with application values
-        app_origin_params = self.syncparameter_set.filter(use_in='origin')
-        app_dest_params = self.syncparameter_set.filter(use_in='destiny')
+            # mapping req parameters with application values
+            app_orig_prms = self.syncparameter_set.filter(use_in='origin')
+            app_dest_params = self.syncparameter_set.filter(use_in='destiny')
 
-        # parse elements
-        parse_origin_params = {p.key: eval(p.value) for p in app_origin_params}
-        parse_dest_params = {p.key: eval(p.value) for p in app_dest_params}
+            # parse elements
+            parse_origin_params = {p.key: eval(p.value) for p in app_orig_prms}
+            parse_dest_params = {p.key: eval(p.value) for p in app_dest_params}
 
-        #print(parse_dest_params)
+            #print(parse_dest_params)
 
-        # executing methods
-        origin_response = get_method(**parse_origin_params)
-        destiny_response = post_method(origin_response, **parse_dest_params)
+            # executing methods
+            origin_response = get_method(**parse_origin_params)
+            #print(origin_response)
 
-        #print(origin_response)
+            destiny_response = post_method(origin_response, **parse_dest_params)
+
+            SyncHistory.objects.create(
+                sync=self,
+                ok=True
+            )
+
+            return True
+        
+        except Exception as error:
+
+            SyncHistory.objects.create(
+                sync=self,
+                ok=False,
+                error=str(error)
+            )
+
+            return False
 
     def open_nt6_connection(self, source: str):
         """
@@ -135,9 +155,9 @@ class Sync(models.Model):
 
         # connection params
         params = getattr(self, source).credentialparameter_set.all()
-        host = params.filter(key='host').first()
-        username = params.filter(key='user').first()
-        pwd = params.filter(key='password').first()
+        host = params.filter(key='host').first().value
+        username = params.filter(key='user').first().value
+        pwd = params.filter(key='password').first().value
 
         return visma.Client(url=host, username=username, pwd=pwd)
 
@@ -161,7 +181,7 @@ class Sync(models.Model):
 
         return readers
 
-    def get_nt6_employees(self, fields: list, filterExp: str = None):
+    def get_nt6_employees(self, fields: list, filterExp: str = None) -> list:
 
         # open api connection
         client = self.open_nt6_connection(source="origin")
@@ -184,6 +204,46 @@ class Sync(models.Model):
 
         # return employees results. Empty list by default
         return employees.get('items', [])
+
+    def get_visma_employees(self, fields: list, active: bool = None) -> list:
+        # open api connection
+        client = self.open_visma_connection(source="origin")
+
+        # fields definition
+        fields_def = [FieldDefinition.parse_str(field) for field in fields]
+
+        # out employees
+        out_employees = []
+        
+        # no detail
+        response = client.get_employees(
+            active=False,
+            #updatedFrom="2020-08-01"
+        )
+
+        for result in response.get('values'):
+            # detail
+            employee = client.get_employees(employee=f'rh-{result.get("id")}')
+
+            structure = {}
+            for fd in fields_def:
+                # get first value
+                value = employee.get(fd.in_name, None)
+
+                # execute all steps of definition -if exist-
+                for step in fd.steps:
+                    method = getattr(procs, step.method)
+                    value = method(value, *step.parameters.split(","))
+
+                # insert in structure
+                structure.update({fd.out_name: value})
+
+            out_employees.append(structure)
+
+        # close connection
+        client.disconnect()
+
+        return out_employees
 
     def post_nt6_employees(self, employees: list, refer: dict):
         
@@ -228,7 +288,7 @@ class Sync(models.Model):
                 data["dataObj"] = dataObj
 
                 # save employee
-                client.save_element(**data)
+                last_responsse = client.save_element(**data)
 
         # close connection
         client.disconnect()
@@ -246,7 +306,7 @@ class SyncParameter(models.Model):
     )
 
     key = models.CharField(max_length=50, null=True, blank=True)
-    value = models.CharField(max_length=250, null=True, blank=True)
+    value = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return str(self.sync)
@@ -262,6 +322,7 @@ class SyncHistory(models.Model):
 
     def __str__(self):
         return f'{self.sync} | {self.date_time.strftime("%d/%m/%Y %H:%M:%S")}'
+        
     
     
 

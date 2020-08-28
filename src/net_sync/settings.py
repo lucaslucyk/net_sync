@@ -155,35 +155,14 @@ CONFIG_FUNCS = {
         'from': {
             'nettime6': {
                 'method': 'get_nt6_employees',
-                'args': [{
-                    'name': 'fields',
-                    'type': 'list'
-                }, {
-                    'name': 'nettime_filter',
-                    'type': 'str',
-                    'default': 'true = true'
-                }],
             },
             'visma': {
                 'method': 'get_visma_employees',
-                'args': [{
-                    'name': 'fields',
-                    'type': 'list'
-                }, {
-                    'name': 'active',
-                    'type': 'bool',
-                    'default': None
-                }],
             }
         },
         'to': {
             'nettime6': {
                 'method': 'post_nt6_employees',
-                'args': [{
-                    # translate an app field to another app
-                    'name': 'refer',
-                    'type': 'dict',
-                }]
             }
         }
     }
