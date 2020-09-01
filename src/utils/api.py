@@ -20,7 +20,7 @@ class FieldDefinition:
     @classmethod
     def parse_str(cls, string: str):
         field_dest, field_def = string.split("@")
-        orig_steps = field_def.split("|")
+        orig_steps = field_def.split(">>")
         field_orig = orig_steps[0]
         steps = []
 

@@ -1,17 +1,9 @@
 from django.contrib import admin
 from apps.applications import models
 from apps.applications import forms
+from django.contrib import messages
 
 # Register your models here.
-
-# @admin.register(models.CredentialParameter)
-# class CredentialParametersAdmin(admin.ModelAdmin):
-
-#     #fields = ('credential', 'key', 'value')
-#     list_display = ('credential', 'key', 'value')
-
-#     form = forms.CredentialParameterForm
-
 
 class CredParametersInLine(admin.StackedInline):
     model = models.CredentialParameter
@@ -30,14 +22,6 @@ class CredentialAdmin(admin.ModelAdmin):
     search_fields = ["application", "comment"]
     #autocomplete_fields = ['application']
 
-
-# @admin.register(models.SyncParameter)
-# class SyncParametersAdmin(admin.ModelAdmin):
-
-#     fields = ('sync', 'use_in', 'key', 'value')
-#     list_display = ('sync', 'use_in', 'key', 'value')
-
-
 class SyncParamsInline(admin.StackedInline):
     model = models.SyncParameter
     extra = 0
@@ -49,29 +33,58 @@ class SyncParamsInline(admin.StackedInline):
 class SyncsAdmin(admin.ModelAdmin):
 
     inlines = [SyncParamsInline]
-    fields = ('synchronize', 'origin', 'destiny')
-    list_display = ('synchronize', 'origin', 'destiny', 'is_valid')
-
-    autocomplete_fields = ["origin", "destiny"]
+    fields = (
+        'synchronize', 'origin', 'destiny', 'cron_expression', 'active',
+        'status', 'get_last_run', 'get_next_run', 'needs_run'
+    )
+    list_display = (
+        'synchronize', 'origin', 'destiny', 'active', 'is_valid', 'status',
+        'get_last_run', 'get_next_run', 'needs_run'
+    )
+    readonly_fields = ['get_last_run', 'get_next_run', 'needs_run', 'status']
+    autocomplete_fields = ['origin', 'destiny']
+    list_filter = ['synchronize', 'origin', 'destiny', 'active', 'status', ]
+    search_fields = [
+        'synchronize', 'origin__application', 'destiny__application', 'status'
+    ]
 
     actions = ['execute']
 
     def execute(self, request, queryset):
+        correct = True
+
         for sync in queryset:
-            sync.run()
+            # execute and eval result
+            if not sync.run():
+               correct = False 
+                
+        if correct:
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                'Tasks were completed.'
+            )
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                'One or more tasks could not be executed.'
+        )
 
     execute.short_description = "Execute"
 
 @admin.register(models.SyncHistory)
 class SyncHistoryAdmin(admin.ModelAdmin):
 
-    readonly_fields = ["sync", "ok", "date_time", "error"]
-    list_display = ["sync", "date_time", "ok"]
+    readonly_fields = [
+        "sync", "get_origin", "get_destiny", "start_time", "end_time", "ok",
+        "message"
+    ]
+    list_display = [
+        "sync", "get_origin", "get_destiny", "start_time", "end_time", "ok"
+    ]
 
     def has_add_permission(self, request, obj=None):
-        return False
-    
-    def has_delete_permission(self, request, obj=None):
         return False
 
     def has_change_permission(self, request, obj=None):

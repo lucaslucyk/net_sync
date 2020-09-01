@@ -1,11 +1,20 @@
+# built-in
+import datetime
+
+# django
 from django.db import models
 from django.conf import settings
+from django.utils.timezone import now
+from django.utils.safestring import mark_safe
 
 # own
 from utils.connectors import visma
 from utils.connectors import nettime6 as nt6
 from utils import processors as procs
 from utils.api import FieldDefinition
+
+# third
+import croniter
 
 class Credential(models.Model):
 
@@ -58,9 +67,62 @@ class Sync(models.Model):
         on_delete=models.CASCADE,
         related_name='destiny'
     )
+    cron_expression = models.CharField(
+        null=True,
+        blank=True,
+        max_length=255,
+        help_text=mark_safe("{} {}{}{}".format(
+            "Can find your expression in",
+            "<a href='https://crontab.guru/examples.html' target='_blank'>",
+            "Crontab Guru",
+            "</a>."
+        ))
+    )
+    active = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=1,
+        null=True,
+        blank=True,
+        choices=settings.TASK_STATUS,
+        default=settings.TASK_STATUS[0][0]
+    )
 
     def __str__(self):
         return self.get_synchronize_display()
+
+    def get_last_run(self):
+        """ Get last sync history of sync and return end_time property. """
+        
+        # get last history
+        history = self.synchistory_set.last()
+        # if never run
+        if not history:
+            return None
+        # return end_time
+        return history.end_time
+    get_last_run.short_description = "Last Run"
+
+    def get_next_run(self):
+        """ Return datetime with scheduled next time. """
+        try:
+            lr = self.get_last_run()
+            cron = croniter.croniter(self.cron_expression, lr or now())
+            return cron.get_next(datetime.datetime)
+        except Exception as error:
+            return None
+    get_next_run.short_description = "Next Run"
+    
+    def needs_run(self):
+        next_run = self.get_next_run()
+        if not next_run:
+            return False
+
+        if now() >= next_run:# and self.status != '0':
+            return True
+
+        return False
+    needs_run.short_description = "Needs Run"
+    needs_run.boolean = True
 
     def is_valid(self):
         
@@ -83,6 +145,16 @@ class Sync(models.Model):
 
 
     def run(self):
+        
+        # update status
+        self.status = '1'
+        self.save()
+
+        # history create
+        logg = SyncHistory.objects.create(
+            sync=self,
+            ok=True
+        )
 
         try:
             # get configs
@@ -116,20 +188,27 @@ class Sync(models.Model):
 
             destiny_response = post_method(origin_response, **parse_dest_params)
 
-            SyncHistory.objects.create(
-                sync=self,
-                ok=True
-            )
+            # log update
+            logg.end_time = now()
+            logg.save()
+
+            # update status
+            self.status = '0'
+            self.save()
 
             return True
         
         except Exception as error:
+            
+            # log change
+            logg.end_time = now()
+            logg.ok = False
+            logg.message = str(error)
+            logg.save()
 
-            SyncHistory.objects.create(
-                sync=self,
-                ok=False,
-                error=str(error)
-            )
+            # update status
+            self.status = '0'
+            self.save()
 
             return False
 
@@ -315,13 +394,24 @@ class SyncParameter(models.Model):
 class SyncHistory(models.Model):
 
     sync = models.ForeignKey("Sync", on_delete=models.CASCADE)
-    date_time = models.DateTimeField(auto_now_add=True)
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(default=None, null=True, blank=True)
     ok = models.BooleanField(default=True)
 
-    error = models.TextField(blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.sync} | {self.date_time.strftime("%d/%m/%Y %H:%M:%S")}'
+        return f'{self.sync} | {self.start_time.strftime("%d/%m/%Y %H:%M:%S")}'
+
+    def get_origin(self):
+        return self.sync.origin
+    get_origin.short_description = "Origin"
+    get_origin.admin_order_field = "sync__origin"
+
+    def get_destiny(self):
+        return self.sync.destiny
+    get_destiny.short_description = "Destiny"
+    get_destiny.admin_order_field = "sync__destiny"
         
     
     

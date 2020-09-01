@@ -170,3 +170,8 @@ CONFIG_FUNCS = {
 
 # format funcs for sync choices
 AVAILABLE_FUNCS = [(k, k.capitalize()) for k in CONFIG_FUNCS.keys()]
+
+TASK_STATUS = (
+    ('0', 'Pending'),
+    ('1', 'Running'),
+)
