@@ -14,8 +14,8 @@ from utils.api import FieldDefinition
 # third
 from spec_utils import visma
 from spec_utils import nettime6 as nt6
+from spec_utils import specmanagerdb as smdb
 import croniter
-
 
 class Credential(models.Model):
 
@@ -118,7 +118,7 @@ class Sync(models.Model):
         if not next_run:
             return False
 
-        if now() >= next_run:# and self.status != '0':
+        if now() >= next_run and self.status != '0':
             return True
 
         return False
@@ -225,6 +225,7 @@ class Sync(models.Model):
         username = params.filter(key='user').first().value
         pwd = params.filter(key='password').first().value
 
+        # create and return client
         return nt6.Client(url=host, username=username, pwd=pwd)
 
     def open_visma_connection(self, source: str):
@@ -239,7 +240,31 @@ class Sync(models.Model):
         username = params.filter(key='user').first().value
         pwd = params.filter(key='password').first().value
 
+        # create and return client
         return visma.Client(url=host, username=username, pwd=pwd)
+
+    def open_smdb_connection(self, source: str):
+        """
+        Create and return a specmanagerdb client.
+        Source specify origin or destiny conn.
+        """
+
+        # connection params
+        params = getattr(self, source).credentialparameter_set.all()
+        server = params.filter(key='server').first().value
+        username = params.filter(key='user').first().value
+        pwd = params.filter(key='password').first().value
+        database = params.filter(key='database').first().value
+        controller = params.filter(key='controller').first().value
+
+        # create and return client
+        return smdb.Client(
+            username=username,
+            pwd=pwd,
+            server=server,
+            database=database,
+            controller=controller
+        )
 
     def get_nt6_timetypes(self, client: nt6.Client):
         
@@ -262,116 +287,131 @@ class Sync(models.Model):
         return readers
 
     def get_nt6_employees(self, fields: list, filterExp: str = None) -> list:
+        """ Get employees from nettime with spec_utils.nettime6 module. """
 
-        # open api connection
-        client = self.open_nt6_connection(source="origin")
-        
-        # prepare nt query with fields
-        # add expression for ignore old migrations (this.modified >= lastSync)
-        query = nt6.Query(
-            fields=fields,
-            filterExp='{}(this.modified >= "{}")'.format(
-                f'({filterExp}) && ' if filterExp else '',
-                '2020-08-26'
+        # open api connection with auto-disconnect
+        with self.open_nt6_connection(source="origin") as client:
+
+            # prepare nt query with fields
+            # add expression for ignore old syncs (this.modified >= lastSync)
+            query = nt6.Query(
+                fields=fields,
+                filterExp='{}(this.modified >= "{}")'.format(
+                    f'({filterExp}) && ' if filterExp else '',
+                    '2020-08-26'
+                )
             )
-        )
 
-        # get employees
-        employees = client.get_employees(query=query)
-
-        # close connection
-        client.disconnect()
+            # get employees
+            employees = client.get_employees(query=query)
 
         # return employees results. Empty list by default
         return employees.get('items', [])
 
     def get_visma_employees(self, fields: list, active: bool = None) -> list:
-        # open api connection
-        client = self.open_visma_connection(source="origin")
-
-        # fields definition
-        fields_def = [FieldDefinition.parse_str(field) for field in fields]
-
-        # out employees
-        out_employees = []
+        """ Get employees from visma with spec_utils.visma module. """
         
-        # no detail
-        response = client.get_employees(
-            active=False,
-            #updatedFrom="2020-08-01"
-        )
+        # open api connection with auto-disconnect
+        with self.open_visma_connection(source="origin") as client:
 
-        for result in response.get('values'):
-            # detail
-            employee = client.get_employees(employee=f'rh-{result.get("id")}')
+            # fields definition
+            fields_def = [FieldDefinition.parse_str(field) for field in fields]
 
-            structure = {}
-            for fd in fields_def:
-                # get first value
-                value = employee.get(fd.in_name, None)
+            # out employees
+            out_employees = []
+            
+            # no detail
+            response = client.get_employees(
+                active=False,
+                #updatedFrom="2020-08-01"
+            )
 
-                # execute all steps of definition -if exist-
-                for step in fd.steps:
-                    method = getattr(procs, step.method)
-                    value = method(value, *step.parameters.split(","))
+            for result in response.get('values'):
+                # detail
+                employee = client.get_employees(
+                    employee=f'rh-{result.get("id")}'
+                )
 
-                # insert in structure
-                structure.update({fd.out_name: value})
+                structure = {}
+                for fd in fields_def:
+                    # get first value
+                    value = employee.get(fd.in_name, None)
 
-            out_employees.append(structure)
+                    # execute all steps of definition -if exist-
+                    for step in fd.steps:
+                        method = getattr(procs, step.method)
+                        value = method(value, *step.parameters.split(","))
 
-        # close connection
-        client.disconnect()
+                    # insert in structure
+                    structure.update({fd.out_name: value})
+
+                out_employees.append(structure)
 
         return out_employees
 
-    def post_nt6_employees(self, employees: list, refer: dict):
-        
-        # open api connection
-        client = self.open_nt6_connection(source="destiny")
+    def get_smdb_employees(self, **kwargs):
+        """ Get employees from SM with spec_utils.specmanagerdb module. """
 
-        # employee structure
-        data = {"container": "Persona"}
-
-        for employee in employees:
-            # search employee by nif
-            query = nt6.Query(
-                fields=["id", "nif"],
-                filterExp=f'this.nif = "{employee.get(refer.get("nif"))}"',
+        # open api connection with auto-disconnect
+        with self.open_smdb_connection(source="origin") as client:
+            employees = client.get_employees(
+                to_records=kwargs.get('to_records', True)
             )
-            results = client.get_employees(query=query)
 
-            # safety only
-            if results.get('total') <= 1:
+        # return structure
+        return employees
 
-                # update employee
-                if results.get('total') == 1:
-                    # set element
-                    data["elements"] = [results.get('items')[0].get('id')]
-                    # empty data
-                    dataObj = {}
-                
-                # create element
-                else:
-                    # create form and assign all timetypes and readers
-                    dataObj = client.get_create_form(container="Persona")
-                    dataObj.update({
-                        "TimeTypesEmployee": self.get_nt6_timetypes(client),
-                        "Readers": self.get_nt6_readers(client)
-                    })
+    def post_nt6_employees(self, employees: list, refer: dict):
+        """ Send employees to nettime with spec_utils.nettime6 module. """
+        
+        # open api connection with auto-disconnect
+        with self.open_nt6_connection(source="destiny") as client:
+
+            # employee structure
+            data = {"container": "Persona"}
+
+            for employee in employees:
+                # search employee by nif
+                query = nt6.Query(
+                    fields=["id", "nif"],
+                    filterExp=f'this.nif = "{employee.get(refer.get("nif"))}"',
+                )
+                results = client.get_employees(query=query)
+
+                # safety only
+                if results.get('total') <= 1:
+
+                    # update employee
+                    if results.get('total') == 1:
+                        # set element
+                        data["elements"] = [results.get('items')[0].get('id')]
+                        # empty data
+                        dataObj = {}
                     
-                    # delete elements kw
-                    if data.get("elements", None):
-                        del data["elements"]
+                    # create element
+                    else:
+                        # create form and assign all timetypes and readers
+                        dataObj = client.get_create_form(container="Persona")
+                        dataObj.update({
+                            "TimeTypesEmployee": self.get_nt6_timetypes(client),
+                            "Readers": self.get_nt6_readers(client)
+                        })
+                        
+                        # delete elements kw
+                        if data.get("elements", None):
+                            del data["elements"]
 
-                dataObj.update({k: employee.get(v) for k, v in refer.items()})
-                data["dataObj"] = dataObj
+                    dataObj.update(
+                        {k: employee.get(v) for k, v in refer.items()}
+                    )
+                    data["dataObj"] = dataObj
 
-                # save employee
-                last_responsse = client.save_element(**data)
+                    # save employee
+                    last_responsse = client.save_element(**data)
+                    #print(last_responsse)
 
-        # close connection
-        client.disconnect()
+        # return true for general propose
+        return True
 
 class SyncParameter(models.Model):
 

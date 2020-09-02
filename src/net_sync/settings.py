@@ -160,6 +160,9 @@ CONFIG_FUNCS = {
             'nettime6': {
                 'method': 'get_nt6_employees',
             },
+            'manager': {
+                'method': 'get_smdb_employees',
+            },
             'visma': {
                 'method': 'get_visma_employees',
             }
