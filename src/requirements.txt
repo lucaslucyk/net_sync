@@ -4,3 +4,4 @@ django-extensions
 ipython
 jupyter
 croniter
+spec-utils

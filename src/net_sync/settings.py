@@ -148,6 +148,10 @@ REGISTERED_PARAMS = (
     ('instance', 'Instance'),
     ('user', 'User'),
     ('password', 'Password'),
+    ('driver', 'Driver'),
+    ('port', 'Port'),
+    ('database', 'Database'),
+    ('controller', 'Controller'),
 )
 
 CONFIG_FUNCS = {

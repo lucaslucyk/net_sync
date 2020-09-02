@@ -8,13 +8,14 @@ from django.utils.timezone import now
 from django.utils.safestring import mark_safe
 
 # own
-from utils.connectors import visma
-from utils.connectors import nettime6 as nt6
 from utils import processors as procs
 from utils.api import FieldDefinition
 
 # third
+from spec_utils import visma
+from spec_utils import nettime6 as nt6
 import croniter
+
 
 class Credential(models.Model):
 
