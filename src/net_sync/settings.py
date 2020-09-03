@@ -170,6 +170,9 @@ CONFIG_FUNCS = {
         'to': {
             'nettime6': {
                 'method': 'post_nt6_employees',
+            },
+            'manager': {
+                'method': 'post_smdb_employees',
             }
         }
     }

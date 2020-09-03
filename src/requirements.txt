@@ -1,9 +1,9 @@
 django==2.2.13
+spec-utils==0.4.7
 pandas
 django-extensions
 ipython
 jupyter
 croniter
-spec-utils
 pyodbc
 sqlalchemy

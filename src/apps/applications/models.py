@@ -16,6 +16,7 @@ from spec_utils import visma
 from spec_utils import nettime6 as nt6
 from spec_utils import specmanagerdb as smdb
 import croniter
+import pandas as pd
 
 class Credential(models.Model):
 
@@ -360,6 +361,28 @@ class Sync(models.Model):
 
         # return structure
         return employees
+
+    def post_smdb_employees(self, employees: list, refer: dict, **kwargs):
+        """ Send employees to nettime with spec_utils.smdb module. """
+
+        # open api connection with auto-disconnect
+        with self.open_smdb_connection(source="destiny") as client:
+            
+            # convert if is not dataframe
+            if not isinstance(employees, pd.DataFrame):
+                employees = pd.DataFrame.from_records(employees)
+
+            # update headers
+            employees = employees.rename(columns=refer)
+
+            # send data to module
+            result = client.import_employees(
+                employees=employees,
+                source="net_sync"
+            )
+
+        # return true for general propose
+        return result
 
     def post_nt6_employees(self, employees: list, refer: dict):
         """ Send employees to nettime with spec_utils.nettime6 module. """
