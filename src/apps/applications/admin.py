@@ -2,8 +2,7 @@ from django.contrib import admin
 from apps.applications import models
 from apps.applications import forms
 from django.contrib import messages
-
-# Register your models here.
+from django.utils.translation import gettext as _
 
 class CredParametersInLine(admin.StackedInline):
     model = models.CredentialParameter
@@ -62,16 +61,16 @@ class SyncsAdmin(admin.ModelAdmin):
             messages.add_message(
                 request,
                 messages.SUCCESS,
-                'Tasks were completed.'
+                _('Tasks were completed.')
             )
         else:
             messages.add_message(
                 request,
                 messages.ERROR,
-                'One or more tasks could not be executed.'
+                _('One or more tasks could not be executed.')
         )
 
-    execute.short_description = "Execute"
+    execute.short_description = _("Execute")
 
 @admin.register(models.SyncHistory)
 class SyncHistoryAdmin(admin.ModelAdmin):

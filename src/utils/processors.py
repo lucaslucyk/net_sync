@@ -27,4 +27,18 @@ def get_from_list(obj: list, element: str = "__all__"):
     
     except:
         return None
+
+
+def get_gender_acronym(obj: str):
+    """ Return M of F depending if male or female recived. """
+
+    # convert to lower for safety
+    gender = obj.lower()
+
+    # evaluate for next features
+    if gender == "female":
+        return "F"
+
+    # default value
+    return "M"
         

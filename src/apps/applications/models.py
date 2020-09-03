@@ -6,6 +6,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.timezone import now
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext as _
 
 # own
 from utils import processors as procs
@@ -340,12 +341,27 @@ class Sync(models.Model):
 
                     # execute all steps of definition -if exist-
                     for step in fd.steps:
+                        # for null values
+                        if not value:
+                            break
+
+                        # get step method name
                         method = getattr(procs, step.method)
-                        value = method(value, *step.parameters.split(","))
 
-                    # insert in structure
-                    structure.update({fd.out_name: value})
+                        # if exist parameters
+                        if step.parameters:
+                            value = method(
+                                value,
+                                *step.parameters.split(",")
+                            )
+                        else:
+                            value = method(value)
 
+                    # insert in structure if has value only
+                    if value:
+                        structure.update({fd.out_name: value})
+
+                # append complete structure
                 out_employees.append(structure)
 
         return out_employees
@@ -378,7 +394,7 @@ class Sync(models.Model):
             # send data to module
             result = client.import_employees(
                 employees=employees,
-                source="net_sync"
+                source=str(self.origin)
             )
 
         # return true for general propose

@@ -1,3 +1,4 @@
+from re import split as re_split
 
 class FieldDefinition:
 
@@ -19,8 +20,8 @@ class FieldDefinition:
 
     @classmethod
     def parse_str(cls, string: str):
-        field_dest, field_def = string.split("@")
-        orig_steps = field_def.split(">>")
+        field_dest, field_def = re_split('\ *\@\ *', string)
+        orig_steps = re_split('\ *\>\>\ *', field_def)
         field_orig = orig_steps[0]
         steps = []
 
@@ -29,7 +30,8 @@ class FieldDefinition:
 
         mapping = []
         for step in steps:
-            mapping.append(step.split(':'))
+            # split and put None by default
+            mapping.append(re_split('\ *\:\ *', step))
 
         return cls(field_dest, field_orig, mapping)
 
