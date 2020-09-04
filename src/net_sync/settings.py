@@ -185,3 +185,8 @@ TASK_STATUS = (
     ('0', 'Pending'),
     ('1', 'Running'),
 )
+
+PARAM_TYPES = (
+    ('python', 'Python'),
+    ('json', 'JSON'),
+)

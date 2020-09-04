@@ -1,11 +1,12 @@
+import json
 from re import split as re_split
 
 class FieldDefinition:
 
-    def __init__(self, out_name, in_name, steps):
+    def __init__(self, out_name: str, in_name: str, steps: list=None):
         self.out_name = out_name
         self.in_name = in_name
-        self.steps = [self.Step(*step) for step in steps]
+        self.steps = [self.Step.from_json(step) for step in steps]
 
     def __str__(self):
         return repr(self)
@@ -19,33 +20,46 @@ class FieldDefinition:
         )
 
     @classmethod
-    def parse_str(cls, string: str):
-        field_dest, field_def = re_split('\ *\@\ *', string)
-        orig_steps = re_split('\ *\>\>\ *', field_def)
-        field_orig = orig_steps[0]
-        steps = []
+    def from_json(cls, parsed_js: dict):
+        
+        # if recives json unparsed
+        if isinstance(parsed_js, str):
+            parsed_js = json.loads(parsed_js)
 
-        if len(orig_steps) > 1:
-            steps = orig_steps[1:]
-
-        mapping = []
-        for step in steps:
-            # split and put None by default
-            mapping.append(re_split('\ *\:\ *', step))
-
-        return cls(field_dest, field_orig, mapping)
+        return cls(
+            out_name=parsed_js.get('destiny'),
+            in_name=parsed_js.get('origin'),
+            steps=parsed_js.get('steps', [])
+        )
 
     class Step:
-        def __init__(self, method: str, parameters: str = None):
+        def __init__(self, method: str, _args: list = [], _kwargs: dict = {}):
             self.method = method
-            self.parameters = parameters
+            self._args = _args
+            self._kwargs = _kwargs
 
         def __str__(self):
             return repr(self)
 
         def __repr__(self):
-            return '{}(method="{}", parameters="{}")'.format(
+            return '{}(method="{}"{}{})'.format(
                 self.__class__.__name__,
                 self.method,
-                self.parameters
+                f', _args={self._args}' if self._args else '',
+                f', _kwargs={self._kwargs}' if self._kwargs else ''
             )
+        
+        @classmethod
+        def from_json(cls, parsed_js: dict):
+
+            # if recives json unparsed
+            if isinstance(parsed_js, str):
+                parsed_js = json.loads(parsed_js)
+
+            return cls(
+                method=parsed_js.get('method'),
+                _args=parsed_js.get('args', []),
+                _kwargs=parsed_js.get('kwargs', {})
+            )
+
+            

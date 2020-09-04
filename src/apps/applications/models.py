@@ -1,5 +1,6 @@
 # built-in
 import datetime
+import json
 
 # django
 from django.db import models
@@ -180,8 +181,24 @@ class Sync(models.Model):
             app_dest_params = self.syncparameter_set.filter(use_in='destiny')
 
             # parse elements
-            parse_origin_params = {p.key: eval(p.value) for p in app_orig_prms}
-            parse_dest_params = {p.key: eval(p.value) for p in app_dest_params}
+            #parse_origin_params = {p.key: eval(p.value) for p in app_orig_prms}
+            #parse_dest_params = {p.key: eval(p.value) for p in app_dest_params}
+            parse_origin_params = {}
+            parse_dest_params = {}
+
+            # process origin params
+            for p in app_orig_prms:
+                if p._type == 'json':
+                    parse_origin_params[p.key] = json.loads(p.value)
+                else:
+                    parse_origin_params[p.key] = eval(p.value)
+
+            # process destiny params
+            for p in app_dest_params:
+                if p._type == 'json':
+                    parse_dest_params[p.key] = json.loads(p.value)
+                else:
+                    parse_dest_params[p.key] = eval(p.value)
 
             #print(parse_dest_params)
 
@@ -288,16 +305,48 @@ class Sync(models.Model):
 
         return readers
 
+    def apply_fields_def(self, structure: list, fields_def: list):
+        """ Processes a data structure with the fields definition. """
+
+        # empty data by default
+        out_data = []
+
+        # for all elements in structure
+        for elem in structure:
+            structure = {}
+            for fd in fields_def:
+                # get first value
+                value = elem.get(fd.in_name, None)
+
+                # execute all steps of definition -if exist-
+                for step in fd.steps:
+                    # for null values
+                    if not value:
+                        break
+                    # get step method name
+                    method = getattr(procs, step.method)
+                    # execute and get value
+                    value = method(value, *step._args, **step._kwargs)
+
+                # insert in structure if has value only
+                if value:
+                    structure.update({fd.out_name: value})
+
+            # append complete structure
+            out_data.append(structure)
+
+        return out_data
+
+
     def get_nt6_employees(self, fields: list, filterExp: str = None) -> list:
         """ Get employees from nettime with spec_utils.nettime6 module. """
 
         # open api connection with auto-disconnect
         with self.open_nt6_connection(source="origin") as client:
 
-            # prepare nt query with fields
             # add expression for ignore old syncs (this.modified >= lastSync)
             query = nt6.Query(
-                fields=fields,
+                fields=[f.get('origin') for f in fields],
                 filterExp='{}(this.modified >= "{}")'.format(
                     f'({filterExp}) && ' if filterExp else '',
                     '2020-08-26'
@@ -305,10 +354,12 @@ class Sync(models.Model):
             )
 
             # get employees
-            employees = client.get_employees(query=query)
+            nt_response = client.get_employees(query=query)
 
-        # return employees results. Empty list by default
-        return employees.get('items', [])
+        return self.apply_fields_def(
+            structure=nt_response.get('items', []),
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
 
     def get_visma_employees(self, fields: list, active: bool = None) -> list:
         """ Get employees from visma with spec_utils.visma module. """
@@ -316,11 +367,8 @@ class Sync(models.Model):
         # open api connection with auto-disconnect
         with self.open_visma_connection(source="origin") as client:
 
-            # fields definition
-            fields_def = [FieldDefinition.parse_str(field) for field in fields]
-
             # out employees
-            out_employees = []
+            employees_detail = []
             
             # no detail
             response = client.get_employees(
@@ -329,54 +377,38 @@ class Sync(models.Model):
             )
 
             for result in response.get('values'):
-                # detail
-                employee = client.get_employees(
-                    employee=f'rh-{result.get("id")}'
+                # append response to list of employees
+                employees_detail.append(
+                    client.get_employees(employee=f'rh-{result.get("id")}')
                 )
 
-                structure = {}
-                for fd in fields_def:
-                    # get first value
-                    value = employee.get(fd.in_name, None)
+        return self.apply_fields_def(
+            structure=employees_detail,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
 
-                    # execute all steps of definition -if exist-
-                    for step in fd.steps:
-                        # for null values
-                        if not value:
-                            break
-
-                        # get step method name
-                        method = getattr(procs, step.method)
-
-                        # if exist parameters
-                        if step.parameters:
-                            value = method(
-                                value,
-                                *step.parameters.split(",")
-                            )
-                        else:
-                            value = method(value)
-
-                    # insert in structure if has value only
-                    if value:
-                        structure.update({fd.out_name: value})
-
-                # append complete structure
-                out_employees.append(structure)
-
-        return out_employees
-
-    def get_smdb_employees(self, **kwargs):
+    def get_smdb_employees(self, fields: list = [], **kwargs):
         """ Get employees from SM with spec_utils.specmanagerdb module. """
+        
+        # get manager fields
+        sm_fields = [f.get('origin') for f in fields]
 
         # open api connection with auto-disconnect
         with self.open_smdb_connection(source="origin") as client:
-            employees = client.get_employees(
-                to_records=kwargs.get('to_records', True)
+            sm_employees = client.get_employees(
+                to_records=kwargs.get('to_records', True),
+                fields=sm_fields or ['*'],
+                top=kwargs.get('top', 5),
+                where=kwargs.get('where', None),
+                group_by=kwargs.get('group_by', []),
+                #table=kwargs.get('table', "PERSONAS"),
             )
 
         # return structure
-        return employees
+        return self.apply_fields_def(
+            structure=sm_employees,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
 
     def post_smdb_employees(self, employees: list, refer: dict, **kwargs):
         """ Send employees to nettime with spec_utils.smdb module. """
@@ -466,6 +498,14 @@ class SyncParameter(models.Model):
 
     key = models.CharField(max_length=50, null=True, blank=True)
     value = models.TextField(null=True, blank=True)
+    _type = models.CharField(
+        "Type",
+        max_length=20,
+        choices=settings.PARAM_TYPES,
+        blank=False,
+        null=False,
+        default=settings.PARAM_TYPES[0][0]
+    )
 
     def __str__(self):
         return str(self.sync)

@@ -14,7 +14,7 @@ class CredentialParameterForm(ModelForm):
 class SyncParameterForm(ModelForm):
     class Meta:
         model = models.SyncParameter
-        fields = ('use_in', 'key', 'value')
+        fields = ('use_in', 'key', '_type', 'value')
         widgets = {
             'value': Textarea(),
         }
