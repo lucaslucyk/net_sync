@@ -7,3 +7,4 @@ jupyter
 croniter
 pyodbc
 sqlalchemy
+python-dateutil

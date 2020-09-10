@@ -121,7 +121,8 @@ class Sync(models.Model):
         if not next_run:
             return False
 
-        if now() >= next_run and self.status != '0':
+        # if is time to run and not running actually
+        if now() >= next_run and self.status == '0':
             return True
 
         return False
@@ -410,8 +411,12 @@ class Sync(models.Model):
             fields_def=[FieldDefinition.from_json(f) for f in fields]
         )
 
-    def post_smdb_employees(self, employees: list, refer: dict, **kwargs):
+    def post_smdb_employees(self, employees: list, refer: dict, \
+            group: str = "9", **kwargs):
         """ Send employees to nettime with spec_utils.smdb module. """
+
+        # toggle k,v to respect standard
+        #refer = {v: k for k, v in refer.items()}
 
         # open api connection with auto-disconnect
         with self.open_smdb_connection(source="destiny") as client:
@@ -426,7 +431,7 @@ class Sync(models.Model):
             # send data to module
             result = client.import_employees(
                 employees=employees,
-                source=str(self.origin)
+                source=str(self.origin),
             )
 
         # return true for general propose

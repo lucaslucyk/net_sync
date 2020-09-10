@@ -3,10 +3,12 @@ from re import split as re_split
 
 class FieldDefinition:
 
-    def __init__(self, out_name: str, in_name: str, steps: list=None):
+    def __init__(self, out_name: str, in_name: str, steps: list=None, \
+            default: str = None):
         self.out_name = out_name
         self.in_name = in_name
         self.steps = [self.Step.from_json(step) for step in steps]
+        self.default = default
 
     def __str__(self):
         return repr(self)
