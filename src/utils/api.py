@@ -31,7 +31,8 @@ class FieldDefinition:
         return cls(
             out_name=parsed_js.get('destiny'),
             in_name=parsed_js.get('origin'),
-            steps=parsed_js.get('steps', [])
+            steps=parsed_js.get('steps', []),
+            default=parsed_js.get('default', None)
         )
 
     class Step:

@@ -30,6 +30,22 @@ def get_from_list(obj: list, element: str = "__all__"):
     except:
         return None
 
+def split(obj: str, sep: str = None, maxsplit: int = -1) -> list:
+    """
+    Return a list of the words in the string, using sep as the delimiter string.
+
+    @obj
+        String to split.
+    @sep
+        The delimiter according which to split the string.
+        None (the default value) means split according to any whitespace,
+        and discard empty strings from the result.
+    @maxsplit
+        Maximum number of splits to do.
+        -1 (the default value) means no limit.
+    """
+
+    return obj.split(sep=sep, maxsplit=maxsplit)
 
 def get_gender_acronym(obj: str) -> str:
     """ Return M of F depending if male or female recived. """

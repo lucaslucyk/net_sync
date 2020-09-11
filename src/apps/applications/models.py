@@ -314,7 +314,7 @@ class Sync(models.Model):
 
         # for all elements in structure
         for elem in structure:
-            structure = {}
+            _structure = {}
             for fd in fields_def:
                 # get first value
                 value = elem.get(fd.in_name, None)
@@ -329,12 +329,14 @@ class Sync(models.Model):
                     # execute and get value
                     value = method(value, *step._args, **step._kwargs)
 
-                # insert in structure if has value only
+                # insert in _structure if has value or defaultget
+                if not value and getattr(fd, 'default', None):
+                    _structure.update({fd.out_name: fd.default})
                 if value:
-                    structure.update({fd.out_name: value})
+                    _structure.update({fd.out_name: value})
 
-            # append complete structure
-            out_data.append(structure)
+            # append complete _structure
+            out_data.append(_structure)
 
         return out_data
 
@@ -411,12 +413,15 @@ class Sync(models.Model):
             fields_def=[FieldDefinition.from_json(f) for f in fields]
         )
 
-    def post_smdb_employees(self, employees: list, refer: dict, \
+    def post_smdb_employees(self, employees: list, fields: list, \
             group: str = "9", **kwargs):
         """ Send employees to nettime with spec_utils.smdb module. """
 
-        # toggle k,v to respect standard
-        #refer = {v: k for k, v in refer.items()}
+        # updating structure with field_def
+        employees = self.apply_fields_def(
+            structure=employees,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
 
         # open api connection with auto-disconnect
         with self.open_smdb_connection(source="destiny") as client:
@@ -424,9 +429,6 @@ class Sync(models.Model):
             # convert if is not dataframe
             if not isinstance(employees, pd.DataFrame):
                 employees = pd.DataFrame.from_records(employees)
-
-            # update headers
-            employees = employees.rename(columns=refer)
 
             # send data to module
             result = client.import_employees(
@@ -437,8 +439,14 @@ class Sync(models.Model):
         # return true for general propose
         return result
 
-    def post_nt6_employees(self, employees: list, refer: dict):
+    def post_nt6_employees(self, employees: list, fields: list):
         """ Send employees to nettime with spec_utils.nettime6 module. """
+
+        # updating structure with field_def
+        employees = self.apply_fields_def(
+            structure=employees,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
         
         # open api connection with auto-disconnect
         with self.open_nt6_connection(source="destiny") as client:
@@ -450,7 +458,7 @@ class Sync(models.Model):
                 # search employee by nif
                 query = nt6.Query(
                     fields=["id", "nif"],
-                    filterExp=f'this.nif = "{employee.get(refer.get("nif"))}"',
+                    filterExp=f'this.nif = "{employee.get("nif")}"',
                 )
                 results = client.get_employees(query=query)
 
@@ -477,9 +485,7 @@ class Sync(models.Model):
                         if data.get("elements", None):
                             del data["elements"]
 
-                    dataObj.update(
-                        {k: employee.get(v) for k, v in refer.items()}
-                    )
+                    dataObj.update(employee)
                     data["dataObj"] = dataObj
 
                     # save employee
@@ -537,12 +543,3 @@ class SyncHistory(models.Model):
         return self.sync.destiny
     get_destiny.short_description = "Destiny"
     get_destiny.admin_order_field = "sync__destiny"
-        
-    
-    
-
-
-
-
-
-
