@@ -23,6 +23,37 @@ class FieldDefinition:
 
     @classmethod
     def from_json(cls, parsed_js: dict):
+        """
+        Create an instance of FieldDefinition with the "parser_js" dict.
+        
+        @@ Parameters
+        @parsed_js (dict):
+            Dict that must contain the following keys:
+            @origin (str):
+                Name of field in origin (in) structure.
+            @destiny (str):
+                Name of field in destiny (out) structure.
+            @default (any) *optional*:
+                Any object to assign in case the value cannot be obtained or 
+                any step* returns a null value.
+            @steps (list) *optional*: 
+                List of steps to apply in source field to get the output.
+                The steps are recursively executed until get the value.
+                Each step is made up of the following keys:
+                @method (str):
+                    Name of method to execute. Must exist in processors module.
+                @args (list):
+                    List of parameters to pass to the method. 
+                    They can be numeric values, strings, etc.
+                @kwargs (dict): 
+                    Key:Value pairs, where the key is the name of the parameter 
+                    with its respective value.
+                    Use this to ensure future compatibility or to pass 
+                    additional parameters.
+
+        @@ Returns
+        @FieldDefinition : Instance of FieldDefinition.
+        """
         
         # if recives json unparsed
         if isinstance(parsed_js, str):
@@ -54,7 +85,24 @@ class FieldDefinition:
         
         @classmethod
         def from_json(cls, parsed_js: dict):
+            """
+            Create an instance of Step with the "parser_js" dict.
+            
+            @@ Parameters
+            @method (str):
+                Name of method to execute. Must exist in processors module.
+            @args (list):
+                List of parameters to pass to the method. 
+                They can be numeric values, strings, etc.
+            @kwargs (dict): 
+                Key:Value pairs, where the key is the name of the parameter 
+                with its respective value.
+                Use this to ensure future compatibility or to pass 
+                additional parameters.
 
+            @@ Returns
+            @Step : Instance of Step.
+            """
             # if recives json unparsed
             if isinstance(parsed_js, str):
                 parsed_js = json.loads(parsed_js)

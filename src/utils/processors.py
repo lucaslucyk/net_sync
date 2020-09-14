@@ -34,15 +34,19 @@ def split(obj: str, sep: str = None, maxsplit: int = -1) -> list:
     """
     Return a list of the words in the string, using sep as the delimiter string.
 
-    @obj
+    @@ Parameters
+    @obj (str):
         String to split.
-    @sep
+    @sep (str):
         The delimiter according which to split the string.
-        None (the default value) means split according to any whitespace,
+        None (default value) means split according to any whitespace,
         and discard empty strings from the result.
-    @maxsplit
+    @maxsplit (int):
         Maximum number of splits to do.
         -1 (the default value) means no limit.
+
+    @@ Returns
+    @list: List of str splitted by sep* parameter.
     """
 
     return obj.split(sep=sep, maxsplit=maxsplit)
@@ -61,7 +65,24 @@ def get_gender_acronym(obj: str) -> str:
     return "M"
         
 def time_format(obj: str, fmt: str, **kwargs) -> str:
-    """ Formats a date text to another specified. """
+    """
+    Converts a string to a date and returns it in the format indicated by the 
+    fmt* parameter.
+    
+    @@ Parameters
+    @fmt (str):
+        Compatible string with datetime.strftime behavior.
+        More info in:
+        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+    @**kwargs:
+        Parameters to format string to date.
+        These will be passed to the dateutil.parser.parse method.
+        More info in:
+        https://dateutil.readthedocs.io/en/stable/parser.html
+
+    @@ Returns
+    @str: String with formatted date.
+    """
 
     # parse str to datetime object
     py_dt = parse(obj, **kwargs)

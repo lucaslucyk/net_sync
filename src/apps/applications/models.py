@@ -50,6 +50,36 @@ class CredentialParameter(models.Model):
     def __str__(self):
         return str(self.credential)
 
+class SyncManager(models.Manager):
+
+    def get_needs_run(self):
+        """ Returns all elements that need to run """
+
+        # get all active syncs
+        syncs = Sync.objects.filter(active=True, status=0)
+        
+        # get needs_run only
+        out_elements = []
+        for sync in syncs:
+            if sync.needs_run():
+                out_elements.append(sync)
+
+        # return elements
+        return out_elements
+
+    def run_needs(self):
+        """ Run syncs that needs to run. """
+
+        # get needs_run only
+        syncs = self.get_needs_run()
+        
+        try:
+            for sync in syncs:
+                sync.run()
+
+            return True
+        except Exception as error:
+            return str(error)
 
 class Sync(models.Model):
 
@@ -94,11 +124,42 @@ class Sync(models.Model):
     def __str__(self):
         return self.get_synchronize_display()
 
+    @classmethod
+    def get_needs_run(cls):
+        """ Returns all elements that need to run """
+
+        # get all active syncs
+        syncs = cls.objects.filter(active=True, status='0')
+
+        # get needs_run only
+        out_elements = []
+        for sync in syncs:
+            if sync.needs_run():
+                out_elements.append(sync)
+
+        # return elements
+        return out_elements
+
+    @classmethod
+    def run_needs(cls):
+        """ Run syncs that needs to run. """
+
+        # get needs_run only
+        syncs = cls.get_needs_run()
+        
+        _isok = True
+        for sync in syncs:
+            if not sync.run():
+                _isok = False
+
+        return _isok
+
     def get_last_run(self):
         """ Get last sync history of sync and return end_time property. """
         
         # get last history
         history = self.synchistory_set.last()
+
         # if never run
         if not history:
             return None
@@ -117,6 +178,8 @@ class Sync(models.Model):
     get_next_run.short_description = "Next Run"
     
     def needs_run(self):
+        """ Determines if it needs to run depending on the cron expression. """
+
         next_run = self.get_next_run()
         if not next_run:
             return False
@@ -130,7 +193,10 @@ class Sync(models.Model):
     needs_run.boolean = True
 
     def is_valid(self):
-        
+        """
+        Determines if source and destiny have the chosen sync type available.
+        """
+
         # available origins of sync type
         froms = settings.CONFIG_FUNCS.get(self.synchronize).get('from').keys()
 
@@ -150,7 +216,10 @@ class Sync(models.Model):
 
 
     def run(self):
-        
+        """
+        Execute the synchronization obtaining the source and destination 
+        methods and parameters.
+        """
         # update status
         self.status = '1'
         self.save()
@@ -182,8 +251,6 @@ class Sync(models.Model):
             app_dest_params = self.syncparameter_set.filter(use_in='destiny')
 
             # parse elements
-            #parse_origin_params = {p.key: eval(p.value) for p in app_orig_prms}
-            #parse_dest_params = {p.key: eval(p.value) for p in app_dest_params}
             parse_origin_params = {}
             parse_dest_params = {}
 
@@ -201,12 +268,8 @@ class Sync(models.Model):
                 else:
                     parse_dest_params[p.key] = eval(p.value)
 
-            #print(parse_dest_params)
-
             # executing methods
             origin_response = get_method(**parse_origin_params)
-            #print(origin_response)
-
             destiny_response = post_method(origin_response, **parse_dest_params)
 
             # log update
@@ -287,9 +350,14 @@ class Sync(models.Model):
         )
 
     def get_nt6_timetypes(self, client: nt6.Client):
-        
+        """
+        Gets and returns a list of ids of timetypes with a nettime client.
+        """
+
+        # get nt resposne
         nt_incidencias = client.get_elements("Incidencia").get('items')
 
+        # parse response to list
         incidencias = []
         for incidencia in nt_incidencias:
             incidencias.append({"id": incidencia.get("id")})
@@ -297,9 +365,14 @@ class Sync(models.Model):
         return incidencias
 
     def get_nt6_readers(self, client: nt6.Client):
+        """
+        Gets and returns a list of ids of readers with a nettime client.
+        """
 
+        # get nt resposne
         nt_readers = client.get_elements("Lector").get('items')
 
+        # parse response to list
         readers = []
         for reader in nt_readers:
             readers.append({"id": reader.get("id")})
@@ -307,7 +380,19 @@ class Sync(models.Model):
         return readers
 
     def apply_fields_def(self, structure: list, fields_def: list):
-        """ Processes a data structure with the fields definition. """
+        """
+        Receives a json structure and returns another one applying the field 
+        definition to each element of the original structure.
+
+        @@ Parameters
+        @structure (list):
+            JSON structure where each element is a key:value pair dictionary.
+        @fields_def (list):
+            List of api.FieldDefinition elements.
+
+        @@ Returns
+        @list: List or result elements
+        """
 
         # empty data by default
         out_data = []
@@ -342,7 +427,19 @@ class Sync(models.Model):
 
 
     def get_nt6_employees(self, fields: list, filterExp: str = None) -> list:
-        """ Get employees from nettime with spec_utils.nettime6 module. """
+        """
+        Get employees from nettime with spec_utils.nettime6 module.
+        
+        @@ Parameters
+        @fields (list):
+            List of api.FieldDefinition elements.
+        @filterExp (str):
+            Nettime compliant filter expression. None by default.
+
+        @@ Returns
+        @list: list of elements obtained from nettime and processed with the 
+            "fields" parameter.
+        """
 
         # open api connection with auto-disconnect
         with self.open_nt6_connection(source="origin") as client:
@@ -365,7 +462,19 @@ class Sync(models.Model):
         )
 
     def get_visma_employees(self, fields: list, active: bool = None) -> list:
-        """ Get employees from visma with spec_utils.visma module. """
+        """
+        Get employees from visma with spec_utils.visma module.
+        
+        @@ Parameters
+        @fields (list):
+            List of api.FieldDefinition elements.
+        @active (bool):
+            True/False to filter visma employees. None by default.
+
+        @@ Returns
+        @list: list of elements obtained from nettime and processed with the 
+            "fields" parameter.
+        """
         
         # open api connection with auto-disconnect
         with self.open_visma_connection(source="origin") as client:
@@ -391,9 +500,29 @@ class Sync(models.Model):
         )
 
     def get_smdb_employees(self, fields: list = [], **kwargs):
-        """ Get employees from SM with spec_utils.specmanagerdb module. """
+        """
+        Get employees from SM with spec_utils.specmanagerdb module.
         
-        # get manager fields
+        @@ Parameters
+        @fields (list):
+            List of api.FieldDefinition elements.
+        @**kwargs **optional**:
+            The following parameters can be passed:
+            @to_records (bool):
+                False to get a pandas structure as a result. True by default.
+            @top (int):
+                Max results to get from specmanager database. 5 by Default.
+            @where (str):
+                String to determine the condition of the sql statement.
+            @group_by (list):
+                List of string to group items. Empty list by default.
+
+        @@ Returns
+        @list: list of elements obtained from nettime and processed with the 
+            "fields" parameter.
+        """
+        
+        # get manager fields from fields definition
         sm_fields = [f.get('origin') for f in fields]
 
         # open api connection with auto-disconnect
@@ -413,9 +542,29 @@ class Sync(models.Model):
             fields_def=[FieldDefinition.from_json(f) for f in fields]
         )
 
-    def post_smdb_employees(self, employees: list, fields: list, \
-            group: str = "9", **kwargs):
-        """ Send employees to nettime with spec_utils.smdb module. """
+    def post_smdb_employees(self, employees: list, fields: list, **kwargs):
+        """
+        Send employees to nettime with spec_utils.smdb module.
+        
+        @@ Parameters
+        @employees (list):
+            List of dict to send to spec manager.
+        @fields (list):
+            List of api.FieldDefinition elements.
+        @**kwargs **optional**:
+            The following parameters can be passed:
+            @to_records (bool):
+                False to get a pandas structure as a result. True by default.
+            @top (int):
+                Max results to get from specmanager database. 5 by Default.
+            @where (str):
+                String to determine the condition of the sql statement.
+            @group_by (list):
+                List of string to group items. Empty list by default.
+
+        @@ Returns
+        @list: True if no error occurred inserting the values in database.
+        """
 
         # updating structure with field_def
         employees = self.apply_fields_def(
@@ -434,13 +583,25 @@ class Sync(models.Model):
             result = client.import_employees(
                 employees=employees,
                 source=str(self.origin),
+                **kwargs
             )
 
         # return true for general propose
         return result
 
     def post_nt6_employees(self, employees: list, fields: list):
-        """ Send employees to nettime with spec_utils.nettime6 module. """
+        """
+        Send employees to nettime with spec_utils.nettime6 module.
+        
+        @@ Parameters
+        @employees (list):
+            List of dict to send to nettime.
+        @fields (list):
+            List of api.FieldDefinition to apply in employees* structure.
+
+        @@ Returns
+        @bool: True if no error occurred in the nettime api.
+        """
 
         # updating structure with field_def
         employees = self.apply_fields_def(
@@ -490,7 +651,6 @@ class Sync(models.Model):
 
                     # save employee
                     last_responsse = client.save_element(**data)
-                    #print(last_responsse)
 
         # return true for general propose
         return True
