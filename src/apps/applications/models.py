@@ -533,7 +533,7 @@ class Sync(models.Model):
                 top=kwargs.get('top', 5),
                 where=kwargs.get('where', None),
                 group_by=kwargs.get('group_by', []),
-                #table=kwargs.get('table', "PERSONAS"),
+                table=kwargs.get('table', "PERSONAS"),
             )
 
         # return structure
@@ -652,6 +652,59 @@ class Sync(models.Model):
                     # save employee
                     last_responsse = client.save_element(**data)
 
+        # return true for general propose
+        return True
+
+    def post_nt6_departments(self, structure: list, fields: list, \
+            levels: list = [], reverse: bool = False):
+        """
+        Send structure to nettime with spec_utils.nettime6 module.
+        
+        @@ Parameters
+        @structure (list):
+            List of dict of departments. Must have 'nif' and 'path' elements.
+        @fields (list):
+            List of api.FieldDefinition to apply in structure* structure.
+        @levels (list):
+            List of str levels to create structure*. Empty by default.
+        @reverse (bool):
+            Use if path is in reverse order. False by default.
+
+        @@ Returns
+        @bool: True if no error occurred in the nettime api.
+        """
+
+        # updating structure with field_def
+        structure = self.apply_fields_def(
+            structure=structure,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
+
+        # open api connection with auto-disconnect
+        with self.open_nt6_connection(source="destiny") as client:
+
+            for element in structure:
+                # search employee by nif
+                query = nt6.Query(
+                    fields=["id", "nif"],
+                    filterExp=f'this.nif = "{element.get("nif")}"',
+                )
+                results = client.get_employees(query=query)
+
+                # set path to department
+                if levels:
+                    path = [element.get(level) for level in levels]
+                else:
+                    path = element.get('path')
+
+                # update employee
+                if results.get('total') == 1:
+                    # assign with summary method
+                    response = client.set_employee_department(
+                        employee=results.get('items')[0].get('id'),
+                        node_path=path[::-1 if reverse else 1]
+                    )
+        
         # return true for general propose
         return True
 

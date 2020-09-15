@@ -175,6 +175,18 @@ CONFIG_FUNCS = {
                 'method': 'post_smdb_employees',
             }
         }
+    },
+    'structure': {
+        'from': {
+            'manager': {
+                'method': 'get_smdb_employees',
+            }
+        },
+        'to': {
+            'nettime6': {
+                'method': 'post_nt6_departments',
+            }
+        }
     }
 }
 
