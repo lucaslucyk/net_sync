@@ -20,16 +20,24 @@ class Command(BaseCommand):
             action='store_true',
             help='Run syncs without asking if it is necessary to run them.'
         )
+        parser.add_argument(
+            '-m',
+            '--messages',
+            action='store_true',
+            help='Get info and warning messages (with errors).'
+        )
 
     def handle(self, *args, **kwargs):
         
         # if force ignore last error
         force = kwargs.get('force')
+        messages = kwargs.get('messages')
         
         # inform start runs
-        self.stdout.write('{} - INFO - Starting run of syncs...'.format(
-            datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
-        )
+        if messages:
+            self.stdout.write('{} - INFO - Starting run of syncs...'.format(
+                datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+            )
 
         try:
             # execute and evaluate result
@@ -45,15 +53,7 @@ class Command(BaseCommand):
                 result = models.Sync.run_needs()
 
             #if everything was correctly ended
-            if result:
-                self.stdout.write(
-                    self.style.SUCCESS('{} - {}'.format(
-                        datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                        'OK - The syncs have finished!'
-                        )
-                    )
-                )
-            else:
+            if not result:
                 self.stdout.write(
                     self.style.ERROR('{} - ERROR - {}'.format(
                         datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
@@ -61,6 +61,17 @@ class Command(BaseCommand):
                         )
                     )
                 )
+                return
+
+            if messages:
+                self.stdout.write(
+                    self.style.SUCCESS('{} - {}'.format(
+                        datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                        'OK - The syncs have finished!'
+                        )
+                    )
+                )
+                return
 
         except Exception as error:
             self.stdout.write(

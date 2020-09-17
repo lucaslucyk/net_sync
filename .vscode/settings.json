@@ -1,3 +1,4 @@
 {
-  "python.linting.enabled": false
+  "python.linting.enabled": false,
+  //"python.pythonPath": "D:\\Documentos\\Programming\\Python\\ambientes\\net_sync\\Scripts\\python"
 }

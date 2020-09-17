@@ -1,25 +1,21 @@
-# built-in
+# -*- coding: utf-8 -*-
+
+### built-in ###
 import datetime
 import json
 
-# django
+### django ###
 from django.db import models
 from django.conf import settings
 from django.utils.timezone import now
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
-# own
-#from utils import processors as procs
-#from utils.api import FieldDefinition
+### own ###
 from utils.methods import SyncMethods
 
-# third
-#from spec_utils import visma
-#from spec_utils import nettime6 as nt6
-#from spec_utils import specmanagerdb as smdb
+### third ###
 import croniter
-#import pandas as pd
 
 class Credential(models.Model):
 

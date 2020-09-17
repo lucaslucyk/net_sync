@@ -1,4 +1,14 @@
+# -*- coding: utf-8 -*-
+
+### built-in ###
 from dateutil.parser import parse
+
+### django ###
+# ...
+### own ###
+# ...
+### third ###
+# ...
 
 def get_from_dict(obj: dict, key: str):
     """ Extract a key from a dictionary. None by default."""
@@ -8,9 +18,16 @@ def get_from_dict(obj: dict, key: str):
 def get_from_list(obj: list, element: str = "__all__"):
     """ 
     Extract an element from a list. Can use a number or global values:
-        - __all__
-        - __first__
-        - __last__
+
+    @@ Parameters
+    @obj (list):
+        Element to process.
+    @element (str or int):
+        Element to extract. The value can be str (name) or int (position).
+        Possible str values:
+            - __all__
+            - __first__
+            - __last__
     """
 
     translate = {
@@ -102,6 +119,19 @@ def extract(obj, end: int = None, start: int = None, step: int = None):
     Extract elements of an iterable from start to end (not including it) with 
     the indicated step.
     If it does not receive parameters, returns the same object.
+
+    @@ Parameters
+    @obj (iterable):
+        Iterable to process.
+    @end (int):
+        Last element to get of iterable (not including).
+    @start (int):
+        First element to get of iterable (including).
+    @step (int):
+        Step to get the values. Use -1 to reverse.
+
+    @@ Returns
+    @iterable: Iterable processed with recived values.
     """
 
     # for safety

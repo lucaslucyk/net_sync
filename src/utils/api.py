@@ -1,5 +1,15 @@
+# -*- coding: utf-8 -*-
+
+### built-in ###
 import json
 from re import split as re_split
+
+### django ###
+# ...
+### own ###
+# ...
+### third ###
+# ...
 
 class FieldDefinition:
 

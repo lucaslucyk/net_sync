@@ -1,11 +1,15 @@
-# built-in
+# -*- coding: utf-8 -*-
+
+### built-in ###
+# ...
+### django ###
 # ...
 
-# own
+### own ###
 from utils import processors as procs
 from utils.api import FieldDefinition
 
-# third
+### third ###
 from spec_utils import visma
 from spec_utils import nettime6 as nt6
 from spec_utils import specmanagerdb as smdb
