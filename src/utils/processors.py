@@ -2,13 +2,80 @@
 
 ### built-in ###
 from dateutil.parser import parse
+import functools
+import operator
 
 ### django ###
 # ...
 ### own ###
-# ...
+import tupleware
+
 ### third ###
 # ...
+
+
+def rgetattr(obj, attr, *args):
+    """ Recursive getattr() with obj.attr path. """
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+    return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+
+def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
+    negative: bool = False, exclude: bool = False, *args, **kwargs):
+    """
+    Filters the elements of the list that match the indicated operation.
+    More info in:
+    https://docs.python.org/3/library/operator.html#mapping-operators-to-functions
+
+    @@ Parameters
+    @obj (list):
+        Element to process.
+    @attribute (str):
+        Path to element to apply operation* and compare with value*.
+    @value (any):
+        Value to compare with attribute selected.
+    @operation (str):
+        Operation to get from operator module. 'eq' by default (==).
+    @negative (bool):
+        Inform if you want to deny the comparison.
+    @excluce (bool):
+        Informs if you want to exclude the matching elements
+        (it includes them by default eliminating those that do not match)
+    @\*args:
+        Elements to pass to the selected operator.
+    @\*\*kwargs:
+        KW Elements to pass to the selected operator.
+    """
+
+    # list of dict to list of NamedTupleWare
+    objects = tupleware.tupleware(obj)
+
+    # method of operator to execute.
+    # 'eq' by default
+    method = getattr(operator, operation)
+
+    # out elements
+    elements = []
+
+    for element in objects:
+        # get attr value and execute method of operator
+        res = method(rgetattr(element, attribute, None), value, *args, **kwargs)
+        
+        # negate if recives 'negative' parameter
+        if negative:
+            res = not res
+
+        if res:
+            # if not exclude, append element to out elements
+            elements.append(element) if not exclude else None
+        else:
+            # if operator don't match but must exclude matches,
+            # append element to out elements
+            elements.append(element) if exclude else None
+
+    # return elements
+    return tupleware.to_dict(elements)
 
 def get_from_dict(obj: dict, key: str):
     """ Extract a key from a dictionary. None by default."""

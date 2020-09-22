@@ -13,11 +13,13 @@ from datetime import datetime
 
 # path to manage.py file
 MANAGE_FILE = r'D:\Documentos\Programming\Python\spec\net_sync\src\manage.py'
-# path to netsync service folder
-BASE_DIR = r'D:\Documentos\Programming\Python\spec\net_sync\config\windows\service'
+# path to netsync log file
+LOG_FILE = r'C:\ProgramData\NetSync\netsync.log'
 # minutes to refresh
 TIMING = 1
-LOG_FILE = os.path.join(BASE_DIR, 'netsync.log')
+
+# system constants
+LOG_PATH = os.path.dirname(LOG_FILE)
 
 class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = 'netSync'
@@ -28,6 +30,12 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         socket.setdefaulttimeout(60)
+
+    def ensure_log_folder(self):
+        # create folder if not exist
+        # raise if error
+        if not os.path.exists(LOG_PATH):
+            os.mkdir(LOG_PATH)
 
     def SvcStop(self):
         self.stop()
@@ -46,6 +54,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.main()
 
     def start(self):
+        # ensure log folder
+        self.ensure_log_folder()
+
+        # start process
         with open(LOG_FILE, mode='a+', encoding='utf-8') as logg:
             logg.write('{} Starting service...\n'.format(
                 datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -54,6 +66,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.isrunning = True
 
     def stop(self):
+        # ensure log folder
+        self.ensure_log_folder()
+
+        # stop process
         with open(LOG_FILE, mode='a+', encoding='utf-8') as logg:
             logg.write('{} Stoping service...\n'.format(
                 datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -62,7 +78,12 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         self.isrunning = False
 
     def main(self):
+        # main process
         while self.isrunning:
+            # ensure log folder
+            self.ensure_log_folder()
+
+            # main process
             with open(LOG_FILE, mode='a+', encoding='utf-8') as logg:
                 try:
                     p = subprocess.check_call(

@@ -122,5 +122,3 @@ class FieldDefinition:
                 _args=parsed_js.get('args', []),
                 _kwargs=parsed_js.get('kwargs', {})
             )
-
-            

@@ -12,6 +12,7 @@ from utils.api import FieldDefinition
 ### third ###
 from spec_utils import visma
 from spec_utils import nettime6 as nt6
+from spec_utils import exactian
 from spec_utils import specmanagerdb as smdb
 import pandas as pd
 
@@ -47,6 +48,21 @@ class SyncMethods(object):
         # create and return client
         return visma.Client(url=host, username=username, pwd=pwd)
 
+    def open_exactian_connection(self, source: str):
+        """
+        Create and return a visma client.
+        Source specify origin or destiny conn.
+        """
+
+        # connection params
+        params = getattr(self, source).credentialparameter_set.all()
+        host = params.filter(key='host').first().value
+        username = params.filter(key='user').first().value
+        pwd = params.filter(key='password').first().value
+
+        # create and return client
+        return exactian.Client(url=host, username=username, pwd=pwd)
+
     def open_smdb_connection(self, source: str):
         """
         Create and return a specmanagerdb client.
@@ -69,36 +85,6 @@ class SyncMethods(object):
             database=database,
             controller=controller
         )
-
-    def get_nt6_timetypes(self, client: nt6.Client):
-        """
-        Gets and returns a list of ids of timetypes with a nettime client.
-        """
-
-        # get nt resposne
-        nt_incidencias = client.get_elements("Incidencia").get('items')
-
-        # parse response to list
-        incidencias = []
-        for incidencia in nt_incidencias:
-            incidencias.append({"id": incidencia.get("id")})
-
-        return incidencias
-
-    def get_nt6_readers(self, client: nt6.Client):
-        """
-        Gets and returns a list of ids of readers with a nettime client.
-        """
-
-        # get nt resposne
-        nt_readers = client.get_elements("Lector").get('items')
-
-        # parse response to list
-        readers = []
-        for reader in nt_readers:
-            readers.append({"id": reader.get("id")})
-
-        return readers
 
     def apply_fields_def(self, structure: list, fields_def: list):
         """
@@ -162,6 +148,11 @@ class SyncMethods(object):
             "fields" parameter.
         """
 
+        # getting last run or default value
+        last_run = '2000-01-01'
+        if self.get_last_run():
+            last_run = self.get_last_run().strftime("%Y-%M-%d")
+
         # open api connection with auto-disconnect
         with self.open_nt6_connection(source="origin") as client:
 
@@ -170,7 +161,7 @@ class SyncMethods(object):
                 fields=[f.get('origin') for f in fields],
                 filterExp='{}(this.modified >= "{}")'.format(
                     f'({filterExp}) && ' if filterExp else '',
-                    '2020-08-26'
+                    last_run
                 )
             )
 
@@ -182,7 +173,8 @@ class SyncMethods(object):
             fields_def=[FieldDefinition.from_json(f) for f in fields]
         )
 
-    def get_visma_employees(self, fields: list, active: bool = None) -> list:
+    def get_visma_employees(self, fields: list, active: bool = None, \
+            extensions: list = []) -> list:
         """
         Get employees from visma with spec_utils.visma module.
         
@@ -191,11 +183,19 @@ class SyncMethods(object):
             List of api.FieldDefinition elements.
         @active (bool):
             True/False to filter visma employees. None by default.
+        @extensions (list):
+            List of str with extensions to append to structure. Will be append
+            with _extension_name.
 
         @@ Returns
-        @list: list of elements obtained from nettime and processed with the 
+        @list: list of elements obtained from visma and processed with the 
             "fields" parameter.
         """
+
+        # getting last run or default value
+        last_run = '2000-01-01'
+        if self.get_last_run():
+            last_run = self.get_last_run().strftime("%Y-%M-%d")
         
         # open api connection with auto-disconnect
         with self.open_visma_connection(source="origin") as client:
@@ -206,17 +206,51 @@ class SyncMethods(object):
             # no detail
             response = client.get_employees(
                 active=False,
-                #updatedFrom="2020-08-01"
+                updatedFrom=last_run
             )
 
             for result in response.get('values'):
-                # append response to list of employees
-                employees_detail.append(
-                    client.get_employees(employee=f'rh-{result.get("id")}')
+                # get employee detail
+                empployee = client.get_employees(
+                    employee=f'rh-{result.get("id")}'
                 )
+                # optional extension/s
+                for extension in extensions:
+                    employee.update({
+                        f'_{extension}': client.get_employees(
+                            employee=f'rh-{result.get("id")}',
+                            extension=extension,
+                        )
+                    })
+
+                # push employee in detail list
+                employees_detail.append(employee)
 
         return self.apply_fields_def(
             structure=employees_detail,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
+
+    def get_exactian_employees(self, fields: list, **kwargs) -> list:
+        """
+        Get employees from exactian with spec_utils.exactian module.
+        
+        @@ Parameters
+        @fields (list):
+            List of api.FieldDefinition elements.
+
+        @@ Returns
+        @list: list of elements obtained from exactian and processed with the 
+            "fields" parameter.
+        """
+
+        # open api connection with auto-disconnect
+        with self.open_exactian_connection(source="origin") as client:
+            # get exactian structure
+            employees = client.get_emnployees()
+
+        return self.apply_fields_def(
+            structure=employees,
             fields_def=[FieldDefinition.from_json(f) for f in fields]
         )
 
@@ -310,7 +344,7 @@ class SyncMethods(object):
         # return true for general propose
         return result
 
-    def post_nt6_employees(self, employees: list, fields: list):
+    def post_nt6_employees(self, employees: list, fields: list, **kwargs):
         """
         Send employees to nettime with spec_utils.nettime6 module.
         
@@ -332,46 +366,9 @@ class SyncMethods(object):
         
         # open api connection with auto-disconnect
         with self.open_nt6_connection(source="destiny") as client:
-
-            # employee structure
-            data = {"container": "Persona"}
-
+            # import employees one by one
             for employee in employees:
-                # search employee by nif
-                query = nt6.Query(
-                    fields=["id", "nif"],
-                    filterExp=f'this.nif = "{employee.get("nif")}"',
-                )
-                results = client.get_employees(query=query)
-
-                # safety only
-                if results.get('total') <= 1:
-
-                    # update employee
-                    if results.get('total') == 1:
-                        # set element
-                        data["elements"] = [results.get('items')[0].get('id')]
-                        # empty data
-                        dataObj = {}
-                    
-                    # create element
-                    else:
-                        # create form and assign all timetypes and readers
-                        dataObj = client.get_create_form(container="Persona")
-                        dataObj.update({
-                            "TimeTypesEmployee": self.get_nt6_timetypes(client),
-                            "Readers": self.get_nt6_readers(client)
-                        })
-                        
-                        # delete elements kw
-                        if data.get("elements", None):
-                            del data["elements"]
-
-                    dataObj.update(employee)
-                    data["dataObj"] = dataObj
-
-                    # save employee
-                    last_responsse = client.save_element(**data)
+                response = client.import_employee(structure=employee)
 
         # return true for general propose
         return True

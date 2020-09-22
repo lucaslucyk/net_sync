@@ -140,6 +140,7 @@ REGISTERED_APPS = (
     ('nettime6', 'NetTime 6'),
     ('manager', 'SPEC Manager'),
     ('visma', 'Visma RH'),
+    ('exactian', 'Exactian')
 )
 
 REGISTERED_PARAMS = (
@@ -165,6 +166,9 @@ CONFIG_FUNCS = {
             },
             'visma': {
                 'method': 'get_visma_employees',
+            },
+            'exactian': {
+                'method': 'get_exactian_employees',
             }
         },
         'to': {

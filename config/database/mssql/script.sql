@@ -127,3 +127,56 @@ AS
 GO
 
 -- after can use select * from [dbo].[AR_PERSO_DEPTOS]
+
+/***** Contractors import table *****/
+
+--USE [LEDESMA]
+--GO
+
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[AR_IMP_CONTRATAS](
+	[SISTEMA] [varchar](10) NULL,
+	[CENTRO] [varchar](50) NULL,
+	[CODIGO] [varchar](10) NULL,
+	[NIF] [varchar](20) NOT NULL,
+	[NUM_SS] [varchar](25) NULL,
+	[APELLIDO] [varchar](40) NULL,
+	[NOMBRES] [varchar](40) NULL,
+	[ESTADO] [varchar](1) NULL,
+	[MAIL] [varchar](100) NULL,
+	[SEXO] [varchar](10) NULL,
+	[F_NACIMIENTO] [varchar](8) NULL,
+	[TLF_PERS] [varchar](20) NULL,
+	[MOVIL] [varchar](20) NULL,
+	[TLF_EMPR] [varchar](20) NULL,
+	[EXTENSION] [varchar](10) NULL,
+	[DIRECCION] [varchar](40) NULL,
+	[POBLACION] [varchar](32) NULL,
+	[PROVINCIA] [varchar](32) NULL,
+	[COD_POST] [varchar](5) NULL,
+	[EDIFICIO] [varchar](32) NULL,
+	[PLANTA] [varchar](32) NULL,
+	[DESPACHO] [varchar](32) NULL,
+	[DATO_1] [varchar](255) NULL,
+	[DATO_2] [varchar](255) NULL,
+	[DATO_3] [varchar](255) NULL,
+	[DATO_4] [varchar](255) NULL,
+	[DATO_5] [varchar](255) NULL,
+	[DATO_6] [varchar](255) NULL,
+	[DATO_7] [varchar](255) NULL,
+	[DATO_8] [varchar](255) NULL,
+	[GRUPO_A] [varchar](40) NULL,
+	[GRUPO_B] [varchar](40) NULL,
+	[GRUPO_C] [varchar](40) NULL,
+	[GRUPO_D] [varchar](40) NULL,
+	[GRUPO_E] [varchar](40) NULL,
+	[GRUPO_F] [varchar](40) NULL,
+	[GRUPO_G] [varchar](40) NULL,
+	[GRUPO_H] [varchar](40) NULL,
+) ON [PRIMARY]
+GO
