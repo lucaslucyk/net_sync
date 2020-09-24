@@ -1,0 +1,88 @@
+/*
+ @version = 0.3
+ @date = 2020-09-24
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// in/active
+SI (campo("ESTADO") == "0") ENTONCES
+  ponBaja();
+FSI;
+
+// employeeCode
+ponMatricula();
+
+// card number
+SI (campo("TARJETA") <> "" Y campo("TARJETA") <> campoPersona("tarjeta")) ENTONCES
+  
+  // if recives card version
+  SI (campo("VERS_TARJ") <> "") ENTONCES
+    setTipoTarjeta(campo("VERS_TARJ"));
+  FSI;
+  
+  // set number
+  tarjeta = campo("TARJETA");
+  
+  // check start
+  SI (campo("INI_VAL") <> "") ENTONCES
+    fecha_inicio = campo("INI_VAL");
+  SINO
+    fecha_inicio = a_texto(hoy());
+  FSI;
+  
+  // check end
+  SI (campo("FIN_VAL") <> "") ENTONCES
+    fecha_fin = campo("FIN_VAL");
+  SINO
+    fecha_fin = "20371231";
+  FSI;
+  
+  // set card number
+  ponTarjeta();
+FSI;
+
+// refresh code
+$pers_cod = campoPersona("codigo");
+
+// optional data
+lanzaInterfaz("IMP_PERSONAL_DATOS", "", "");
+
+// patches
+lanzaInterfaz("IMP_PERSONAL_PARCHES", "", "");
+
+// departments
+fecha_inicio = fecha_alta_empresa ;
+fecha_fin = "20371231" ;
+
+// levels or empty string by default
+$nivel_1 = campo("NIVEL_1");
+$nivel_2 = campo("NIVEL_2");
+$nivel_3 = campo("NIVEL_3");
+$nivel_4 = campo("NIVEL_4");
+$nivel_5 = campo("NIVEL_5");
+$nivel_6 = campo("NIVEL_6");
+$nivel_7 = campo("NIVEL_7");
+$nivel_8 = campo("NIVEL_8");
+$nivel_9 = campo("NIVEL_9");
+$nivel_10 = campo("NIVEL_10");
+
+// departments path
+$depart_path = campo("RUTA_NIVELES");
+$sep = campo("SEP_NIVELES");
+SI ($sep == "") ENTONCES
+  $sep = ";";
+FSI;
+
+// reset level
+$nivel = 1 ;
+SI ($depart_path <> "") ENTONCES
+  // path to levels vars
+  lanzaInterfaz("IMP_PERSONAL_DEPARTS_PATH", "", "");
+FSI;
+
+// imp departs
+lanzaInterfaz("IMP_PERSONAL_DEPARTS", "", "");
+
+// optional groups
+lanzaInterfaz("IMP_PERSONAL_GROUPS", "", "");

@@ -1,0 +1,102 @@
+/*
+ @version = 0.1
+ @date = 2020-09-10
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// Reset vars
+$direccion = "";
+$poblacion = "";
+$tel_per = "";
+$tel_mov = "";
+$tel_empre = "";
+$tel_ext = "";
+$provincia = "";
+$cod_post = "";
+$edificio = "";
+$planta = "";
+$despacho = "";
+$f_nacim = "";
+$sex = "";
+$cuil = "";
+$email = "";
+
+// update fields with value only
+SI (campo("DIRECCION") <> "") ENTONCES
+  $direccion = ", PAR_DIRECCION = '" + campo("DIRECCION") + "'";
+FSI;
+
+SI (campo("POBLACION") <> "") ENTONCES
+  $poblacion = ", PAR_POBLACION = '" + campo("POBLACION") + "'";
+FSI;
+
+SI (campo("TLF_PERS") <> "") ENTONCES
+  $tel_per = ", PAR_TELEFONO2 = '" + campo("TLF_PERS") + "'";
+FSI;
+
+SI (campo("MOVIL") <> "") ENTONCES
+  $tel_mov = ", PAR_MOVIL = '" + campo("MOVIL") + "'";
+FSI;
+
+SI (campo("TLF_EMPR") <> "") ENTONCES
+  $tel_empre = ", PAR_TELEFONO = '" + campo("TLF_EMPR") + "'";
+FSI;
+
+SI (campo("EXTENSION") <> "") ENTONCES
+  $tel_ext = ", PAR_EXTENSION = '" + campo("EXTENSION") + "'";
+FSI;
+
+SI (campo("PROVINCIA") <> "") ENTONCES
+  $provincia = ", PAR_PROVINCIA = '" + campo("PROVINCIA") + "'";
+FSI;
+
+SI (campo("COD_POST") <> "") ENTONCES
+  $cod_post = ", PAR_CP = '" + campo("COD_POST") + "'";
+FSI;
+
+SI (campo("EDIFICIO") <> "") ENTONCES
+  $edificio = ", PAR_EDIFICIO = '" + campo("EDIFICIO") + "'";
+FSI;
+
+SI (campo("PLANTA") <> "") ENTONCES
+  $planta = ", PAR_PLANTA = '" + campo("PLANTA") + "'";
+FSI;
+
+SI (campo("DESPACHO") <> "") ENTONCES
+  $despacho = ", PAR_DESPACHO = '" + campo("DESPACHO") + "'";
+FSI;
+
+SI (campo("F_NACIMIENTO") <> "") ENTONCES
+  $f_nacim = ", PAR_FECHA_NACIMIENTO = '" + campo("F_NACIMIENTO") + "'";
+FSI;
+
+SI (campo("SEXO") <> "") ENTONCES
+  COMPRUEBA (campo("SEXO"))
+    CASO ("M") ENTONCES $v_sex = 0 ; FIN
+    CASO ("Male") ENTONCES $v_sex = 0 ; FIN
+    DEFECTO $v_sex = 1 ; FIN
+  FIN;
+  $sex = ", PAR_SEXO = " + $v_sex + "";
+FSI;
+
+SI (campo("NUM_SS") <> "") ENTONCES
+  $cuil = ", PAR_N_SS = '" + campo("NUM_SS") + "'";
+FSI;
+
+SI (campo("MAIL") <> "") ENTONCES
+  $email = ", PAR_EMAIL = '" + campo("MAIL") + "'";
+FSI;
+
+// sql prepare
+$query = "UPDATE PARCHES SET "+
+  "PAR_PERS = '"+$pers_cod+"'"+
+  $direccion+$poblacion+$tel_per+$tel_mov+$tel_empre+$tel_ext+$provincia+
+  $cod_post+$edificio+$planta+$despacho+$f_nacim+$sex+$cuil+$email+
+  " WHERE PAR_PERS = '"+$pers_cod+"' AND PAR_TIPO = '"+tipo_persona+"';";
+ 
+//informa($query);
+SI (sql($query) == 0) ENTONCES
+  informa("Could not update 'PARCHES' table with query '"+$query+"'");
+FSI;
+

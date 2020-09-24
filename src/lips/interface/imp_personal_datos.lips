@@ -1,0 +1,39 @@
+/*
+ @version = 0.1
+ @date = 2020-09-10
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// Assign if has value only
+SI (campo("DATO_1") <> "") ENTONCES
+  modificaDatoOpcional(campo("DATO_1"), 1);
+FSI;
+
+SI (campo("DATO_2") <> "") ENTONCES
+  modificaDatoOpcional(campo("DATO_1"), 2);
+FSI;
+
+SI (campo("DATO_3") <> "") ENTONCES
+  modificaDatoOpcional(campo("DATO_1"), 3);
+FSI;
+
+SI (campo("DATO_4") <> "") ENTONCES
+  modificaDatoOpcional(campo("DATO_1"), 4);
+FSI;
+
+SI (campo("DATO_5") <> "") ENTONCES
+  modificaDatoOpcional(campo("DATO_1"), 5);
+FSI;
+
+SI (campo("DATO_6") <> "") ENTONCES
+  modificaDatoOpcional(campo("DATO_1"), 6);
+FSI;
+
+SI (campo("DATO_7") <> "") ENTONCES
+  modificaDatoOpcional(campo("DATO_1"), 7);
+FSI;
+
+SI (campo("DATO_8") <> "") ENTONCES
+  modificaDatoOpcional(campo("DATO_1"), 8);
+FSI;

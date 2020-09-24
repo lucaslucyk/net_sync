@@ -13,6 +13,11 @@ from . import tupleware
 ### third ###
 # ...
 
+def rget(obj: dict, key: str, *args):
+    """ Recursive get() with obj.get(key, *args) path. """
+    def _get(obj, key):
+        return obj.get(key, *args)
+    return functools.reduce(_get, [obj] + key.split('.'))
 
 def rgetattr(obj, attr, *args):
     """ Recursive getattr() with obj.attr path. """
@@ -55,7 +60,7 @@ def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
     """
 
     # list of dict to list of NamedTupleWare
-    objects = tupleware.tupleware(obj)
+    #objects = tupleware.tupleware(obj)
 
     # method of operator to execute.
     # 'eq' by default
@@ -64,9 +69,12 @@ def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
     # out elements
     elements = []
 
-    for element in objects:
+    #for element in objects:
+    for element in obj:
         # get attr value and execute method of operator
-        res = method(rgetattr(element, attribute, None), value, *args, **kwargs)
+        # res = method(
+        #     rgetattr(element, attribute, None), value, *args, **kwargs)
+        res = method(rget(element, attribute, None), value, *args, **kwargs)
         
         # negate if recives 'negative' parameter
         if negative:
@@ -81,7 +89,8 @@ def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
             elements.append(element) if exclude else None
 
     # return elements
-    return tupleware.to_dict(elements)
+    #return tupleware.to_dict(elements)
+    return elements
 
 
 def get_from_dict(obj: dict, key: str):

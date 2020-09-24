@@ -1,0 +1,10 @@
+/*
+ @version = 0.1
+ @date = 2020-09-10
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// looking for news items
+creaFuente("AR_DOWNCONF", 1, "SELECT * FROM AR_DOWNCONF WHERE END_TIME IS NULL", "");
+lanzaInterfaz("RUN_TASKS", "AR_DOWNCONF", "");

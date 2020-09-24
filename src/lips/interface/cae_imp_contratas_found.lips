@@ -1,0 +1,39 @@
+/*
+ @version = 0.1
+ @date = 2020-09-23
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// employeeCode
+ponMatricula();
+
+// refresh code
+$pers_cod = campoPersona("codigo");
+
+// optional data
+lanzaInterfaz("IMP_PERSONAL_DATOS", "", "");
+
+// patches
+lanzaInterfaz("IMP_PERSONAL_PARCHES", "", "");
+
+// company
+$expires = campo("VENCIMIENTO");
+$estado = campo("ESTADO");
+
+// expires date
+SI ($expires == "") ENTONCES
+  $expires = "20371231";
+FSI;
+// status field
+SI ($estado == 0) ENTONCES
+  $expires = a_fecha(hoy());
+FSI;
+
+// update company
+ponEmpresa();
+
+// down if today >= expires
+SI (entero(a_fecha(hoy()) > entero($expires)) ENTONCES
+  ponBaja();
+FSI;

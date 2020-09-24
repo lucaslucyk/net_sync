@@ -1,0 +1,93 @@
+/*
+ @version = 0.1
+ @date = 2020-09-23
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// get not null values
+dni = campo("NIF");
+apellidos = campo("APELLIDO");
+nombre = campo("NOMBRES");
+
+cif_empresa = campo("CIF");
+nombre_empresa = campo("EMPRESA");
+
+// check constants and take recived value by default
+// if is Null, assign 6
+$sistema = campo("SISTEMA");
+SI ($sistema <> "") ENTONCES
+  COMPRUEBA ($sistema)
+    CASO ("PROPIO") ENTONCES tipo_persona = "9"; FIN
+    CASO ("GENTE") ENTONCES tipo_persona = "2"; FIN
+    CASO ("GSP") ENTONCES tipo_persona = "4"; FIN
+    CASO ("CONTRATISTAS") ENTONCES tipo_persona = "6"; FIN
+    DEFECTO tipo_persona = $sistema; FIN
+  FIN;
+SINO
+  tipo_persona = "6" ;
+FSI;
+
+// center
+SI (campo("CENTRO") <> "") ENTONCES
+  SI (length(campo("CENTRO")) <= 3) ENTONCES
+    $search_by = 1 ;
+  SINO
+    $search_by = 0 ;
+  FSI;
+  buscaCentro(campo("CENTRO"), $search_by);
+FSI;
+
+// create or update company
+SI (buscaEmpresaPorCIF()) ENTONCES
+  // create
+  modificaEmpresa();
+SINO
+  creaEmpresa();
+FSI;
+
+// set cuit to legajo
+matricula_persona = campo("NUM_SS");
+
+// create or update employee
+SI (buscaPersonaPorDNI()) ENTONCES
+  // cod pers
+  SI (campo("CODIGO") <> "") ENTONCES
+    codigo = campo("CODIGO");
+  SINO
+    codigo = dni;
+  FSI;
+  
+  // update...
+  modificaPersona();
+  
+  // refresh date
+  fecha = hoy();
+  $hiring_today = 0 ;
+  
+  // after of update, apply general changes
+  lanzaInterfaz("CAE_IMP_CONTRATAS_FOUND", "", "");
+  
+SINO
+  // cod pers
+  SI (campo("CODIGO") <> "") ENTONCES
+    codigo = campo("CODIGO");
+  SINO
+    codigo = dni;
+  FSI;
+    
+  // create
+  SI (creaPersona()) ENTONCES
+    // refresh date
+    fecha = hoy();
+    ponAlta();
+    $hiring_today = 1 ;
+    
+    // after of create, apply general changes
+    lanzaInterfaz("CAE_IMP_CONTRATAS_FOUND", "", "");
+  SINO
+    informa("Could not be created the contractor with the DNI " + dni);
+  FSI;
+FSI;
+
+

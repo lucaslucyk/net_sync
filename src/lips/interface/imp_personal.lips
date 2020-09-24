@@ -1,0 +1,93 @@
+/*
+ @version = 0.1
+ @date = 2020-09-10
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// get not null values
+dni = campo("DNI");
+apellidos = campo("APELLIDOS");
+nombre = campo("NOMBRE");
+matricula_persona = campo("MATRICULA");
+$f_alta = campo("F_ALTA");
+
+// check constants and take recived value by default
+// if is Null, assign 9
+$sistema = campo("SISTEMA");
+SI ($sistema <> "") ENTONCES
+  COMPRUEBA ($sistema)
+    CASO ("PROPIO") ENTONCES tipo_persona = "9"; FIN
+    CASO ("GENTE") ENTONCES tipo_persona = "2"; FIN
+    CASO ("GSP") ENTONCES tipo_persona = "4"; FIN
+    CASO ("CONTRATISTAS") ENTONCES tipo_persona = "6"; FIN
+    DEFECTO tipo_persona = $sistema; FIN
+  FIN;
+SINO
+  tipo_persona = "9" ;
+FSI;
+
+// center
+SI (campo("COD_CENT") <> "") ENTONCES
+  SI (length(campo("COD_CENT")) <= 3) ENTONCES
+    $search_by = 1 ;
+  SINO
+    $search_by = 0 ;
+  FSI;
+  buscaCentro(campo("COD_CENT"), $search_by);
+FSI;
+
+// hire date
+SI ($f_alta <> "") ENTONCES
+  fecha_alta_empresa = $f_alta;
+SINO
+  fecha_alta_empresa = hoy();
+FSI;
+
+SI (buscaPersonaPorDNI()) ENTONCES
+  // cod pers
+  SI (campo("COD_PERS") <> "") ENTONCES
+    codigo = campo("COD_PERS");
+  FSI;
+  
+  // update...
+  modificaPersona();
+  
+  // check hire date
+  SI ($f_alta <> "" Y campo("ESTADO") <> "0") ENTONCES
+    fecha = $f_alta;
+    ponAlta();
+  FSI;
+  
+  // refresh date
+  fecha = hoy();
+  
+  // after of update, apply general changes
+  lanzaInterfaz("IMP_PERSONAL_FOUND", "", "");
+  
+SINO
+  // cod pers
+  SI (campo("COD_PERS") <> "") ENTONCES
+    codigo = campo("COD_PERS");
+  SINO
+    codigo = matricula_persona;
+  FSI;
+    
+  // create
+  SI (creaPersona()) ENTONCES
+    // check hire date
+    SI ($f_alta <> "" Y campo("ESTADO") <> "0") ENTONCES
+      fecha = $f_alta;
+      ponAlta();
+    FSI;
+    
+    // refresh date
+    fecha = hoy();
+    
+    // after of create, apply general changes
+    lanzaInterfaz("IMP_PERSONAL_FOUND", "", "");
+  SINO
+    informa("Could not be created the employee with the DNI " + dni);
+  FSI;
+FSI;
+

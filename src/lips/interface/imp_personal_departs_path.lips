@@ -1,0 +1,30 @@
+/*
+ @version = 0.1
+ @date = 2020-09-24
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// IMP_PERSONAL_DEPARTS_PATH
+
+$node = siguienteToken($depart_path, ";");
+
+SI ($node <> "") ENTONCES
+  COMPRUEBA ($nivel)
+    CASO (1) ENTONCES $nivel_1 = $node; FIN
+    CASO (2) ENTONCES $nivel_2 = $node; FIN
+    CASO (3) ENTONCES $nivel_3 = $node; FIN
+    CASO (4) ENTONCES $nivel_4 = $node; FIN
+    CASO (5) ENTONCES $nivel_5 = $node; FIN
+    CASO (6) ENTONCES $nivel_6 = $node; FIN
+    CASO (7) ENTONCES $nivel_7 = $node; FIN
+    CASO (8) ENTONCES $nivel_8 = $node; FIN
+    CASO (9) ENTONCES $nivel_9 = $node; FIN
+    CASO (10) ENTONCES $nivel_10 = $node; FIN
+    DEFECTO $nivel_1 = $node; FIN
+  FIN;
+  
+  $nivel = $nivel + 1 ;
+  // recursive call
+  lanzaInterfaz("IMP_PERSONAL_DEPARTS_PATH", "", "");
+FSI;

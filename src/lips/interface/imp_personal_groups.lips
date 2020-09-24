@@ -1,0 +1,74 @@
+/*
+ @version = 0.1
+ @date = 2020-09-23
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+// set groups vars from database
+$ga = campo("GRUPO_A");
+$gb = campo("GRUPO_B");
+$gc = campo("GRUPO_C");
+$gd = campo("GRUPO_D");
+$ge = campo("GRUPO_E");
+$gf = campo("GRUPO_F");
+$gg = campo("GRUPO_G");
+$gh = campo("GRUPO_H");
+
+// search and assign groups
+SI ($ga <> "") ENTONCES
+  SI (buscaGrupo($ga, 0, 1) == 0) ENTONCES
+    creaGrupo($ga, recorta($ga, 1, 10), 1);
+  FSI;
+  ponGrupo(1);
+FSI;
+
+SI ($gb <> "") ENTONCES
+  SI (buscaGrupo($gb, 0 ,2) == 0) ENTONCES
+    creaGrupo($gb, recorta($gb, 1, 10), 2);
+  FSI;
+  ponGrupo(2);
+FSI;
+
+SI ($gc <> "") ENTONCES
+  SI (buscaGrupo($gc, 0, 3) == 0) ENTONCES
+    creaGrupo($gc, recorta($gc, 1, 10), 3);
+  FSI;
+  ponGrupo(3);
+FSI;
+ 
+SI ($gd <> "") ENTONCES
+  SI (buscaGrupo($gd, 0, 4) == 0) ENTONCES
+    creaGrupo($gd, recorta($gd, 1, 10), 4);
+  FSI;
+  ponGrupo(4);
+FSI;
+ 
+SI ($ge <> "") ENTONCES
+  SI (buscaGrupo($ge, 0, 5) == 0) ENTONCES
+    creaGrupo($ge, recorta($ge, 1, 10), 5);
+  FSI;
+ ponGrupo(5);
+FSI;
+ 
+SI ($gf <> "") ENTONCES
+  SI (buscaGrupo($gf, 0, 6) == 0) ENTONCES
+    creaGrupo($gf, recorta($gf, 1, 10), 6);
+  FSI;
+  ponGrupo(6);
+FSI;
+ 
+SI ($gg <> "") ENTONCES
+  SI (buscaGrupo($gg, 0, 7) == 0) ENTONCES
+    creaGrupo($gg, recorta($gg, 1, 10), 7);
+  FSI;
+  ponGrupo(7);
+FSI;
+ 
+SI ($gh <> "") ENTONCES
+  SI (buscaGrupo($gh, 0, 8) == 0) ENTONCES
+    creaGrupo($gh, recorta($gh, 1, 10), 8);
+  FSI;
+  ponGrupo(8);
+FSI;
+ 

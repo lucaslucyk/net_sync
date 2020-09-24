@@ -1,0 +1,101 @@
+/*
+ @version = 0.2
+ @date = 2020-09-24
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+$path = "";
+
+// creating...
+SI ($nivel_1 <> "") ENTONCES
+  $path = $nivel_1 ;
+  SI (buscaDepartamentoPorRuta($path, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_1, "");
+  FSI;
+FSI;
+
+SI ($nivel_2 <> "") ENTONCES
+  $search = $path + ";" + $nivel_2 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_2, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($nivel_3 <> "") ENTONCES
+  $search = $path + ";" + $nivel_3 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_3, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($nivel_4 <> "") ENTONCES
+  $search = $path + ";" + $nivel_4 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_4, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($nivel_5 <> "") ENTONCES
+  $search = $path + ";" + $nivel_5 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_5, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($nivel_6 <> "") ENTONCES
+  $search = $path + ";" + $nivel_6 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_6, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($nivel_7 <> "") ENTONCES
+  $search = $path + ";" + $nivel_7 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_7, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($nivel_8 <> "") ENTONCES
+  $search = $path + ";" + $nivel_8 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_8, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($nivel_9 <> "") ENTONCES
+  $search = $path + ";" + $nivel_9 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_9, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($nivel_10 <> "") ENTONCES
+  $search = $path + ";" + $nivel_10 ;
+  SI (buscaDepartamentoPorRuta($search, ";", 0) == 0) ENTONCES
+    $ok = creaDepartamento($nivel_10, "");
+    cambiaPadreDepartamentoPorRuta($path, ";", 0);
+  FSI;
+  $path = $search ;
+FSI;
+
+SI ($path <> "") ENTONCES
+  ponDepartamento();
+FSI;

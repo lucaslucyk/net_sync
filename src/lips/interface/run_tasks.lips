@@ -1,0 +1,32 @@
+/*
+ @version = 0.1
+ @date = 2020-09-10
+ @author = Lucyk Lucas
+ @mail = llucyk@grupospec.com
+*/
+
+$hash = campo("HASH_CODE");
+$table = campo("TABLE_NAME");
+$lips = campo("LIPS");
+
+SI ($hash <> "" Y $table <> "") ENTONCES
+  
+  informa("Starting sync " + $hash);
+  
+  creaFuente($table, 1, $table, "");
+  lanzaInterfaz(campo("LIPS"), $table, "");
+  
+  // update end field
+  $query_update = "UPDATE AR_DOWNCONF SET END_TIME = '" + ahora + "' WHERE HASH_CODE = '" + $hash + "';";
+  SI (sql($query_update) == 0) ENTONCES
+    error("No se pudo actualizar END_TIME en " + $table);
+  FSI;
+  
+  $query_delete = "DELETE FROM " + $table + ";";
+  SI (sql($query_delete) == 0) ENTONCES
+    error("No se pudo borrar los registros de la tabla " + $table);
+  FSI;
+  
+  informa("Sync " + $hash + " has ended.");
+FSI;
+
