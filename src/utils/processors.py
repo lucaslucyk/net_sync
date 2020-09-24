@@ -8,7 +8,7 @@ import operator
 ### django ###
 # ...
 ### own ###
-import tupleware
+from . import tupleware
 
 ### third ###
 # ...
@@ -19,6 +19,12 @@ def rgetattr(obj, attr, *args):
     def _getattr(obj, attr):
         return getattr(obj, attr, *args)
     return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+
+def rsetattr(obj, attr, val):
+    """ Recursive setattr() with obj.attr path. """
+    pre, _, post = attr.rpartition('.')
+    return setattr(rgetattr(obj, pre) if pre else obj, post, val)
 
 
 def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
@@ -77,10 +83,12 @@ def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
     # return elements
     return tupleware.to_dict(elements)
 
+
 def get_from_dict(obj: dict, key: str):
     """ Extract a key from a dictionary. None by default."""
 
     return obj.get(key, None)
+
 
 def get_from_list(obj: list, element: str = "__all__"):
     """ 
@@ -114,6 +122,7 @@ def get_from_list(obj: list, element: str = "__all__"):
     except:
         return None
 
+
 def split(obj: str, sep: str = None, maxsplit: int = -1) -> list:
     """
     Return a list of the words in the string, using sep as the delimiter string.
@@ -135,6 +144,7 @@ def split(obj: str, sep: str = None, maxsplit: int = -1) -> list:
 
     return obj.split(sep=sep, maxsplit=maxsplit)
 
+
 def get_gender_acronym(obj: str) -> str:
     """ Return M of F depending if male or female recived. """
 
@@ -147,7 +157,8 @@ def get_gender_acronym(obj: str) -> str:
 
     # default value
     return "M"
-        
+
+
 def time_format(obj: str, fmt: str, **kwargs) -> str:
     """
     Converts a string to a date and returns it in the format indicated by the 
@@ -173,6 +184,7 @@ def time_format(obj: str, fmt: str, **kwargs) -> str:
 
     # format and return
     return py_dt.strftime(fmt)
+
 
 def replace(obj: str, old: str, new: str):
     """ Replace the old str with new str in obj. """

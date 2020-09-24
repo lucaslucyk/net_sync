@@ -4,6 +4,9 @@ from apps.applications import forms
 from django.contrib import messages
 from django.utils.translation import gettext as _
 
+admin.site.site_header = 'NetSync'
+admin.site.site_title = _("Sync for Grupo SPEC apps")
+admin.site.index_title = _("NetSync | Crafted by Lucas Lucyk")
 class CredParametersInLine(admin.StackedInline):
     model = models.CredentialParameter
     extra = 0

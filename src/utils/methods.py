@@ -174,7 +174,7 @@ class SyncMethods(object):
         )
 
     def get_visma_employees(self, fields: list, active: bool = None, \
-            extensions: list = []) -> list:
+            extensions: list = [], pageSize: int = 5, all_pages: bool = False):
         """
         Get employees from visma with spec_utils.visma module.
         
@@ -186,6 +186,10 @@ class SyncMethods(object):
         @extensions (list):
             List of str with extensions to append to structure. Will be append
             with _extension_name.
+        @pageSize (int):
+            Num of results per page in Visma request. 5 by default.
+        @all_pages (bool):
+            Recursive get page to get all.
 
         @@ Returns
         @list: list of elements obtained from visma and processed with the 
@@ -206,12 +210,14 @@ class SyncMethods(object):
             # no detail
             response = client.get_employees(
                 active=False,
-                updatedFrom=last_run
+                updatedFrom=last_run,
+                pageSize=pageSize,
+                all_pages=all_pages
             )
 
             for result in response.get('values'):
                 # get employee detail
-                empployee = client.get_employees(
+                employee = client.get_employees(
                     employee=f'rh-{result.get("id")}'
                 )
                 # optional extension/s
@@ -220,12 +226,13 @@ class SyncMethods(object):
                         f'_{extension}': client.get_employees(
                             employee=f'rh-{result.get("id")}',
                             extension=extension,
-                        )
+                        ).get('values', [])
                     })
 
                 # push employee in detail list
                 employees_detail.append(employee)
 
+        #print(employees_detail)
         return self.apply_fields_def(
             structure=employees_detail,
             fields_def=[FieldDefinition.from_json(f) for f in fields]
@@ -320,6 +327,7 @@ class SyncMethods(object):
         @@ Returns
         @list: True if no error occurred inserting the values in database.
         """
+
 
         # updating structure with field_def
         employees = self.apply_fields_def(
