@@ -3,6 +3,7 @@
 ### built-in ###
 import datetime
 import json
+import importlib
 
 ### django ###
 from django.db import models
@@ -211,6 +212,7 @@ class Sync(models.Model, SyncMethods):
 
             # str to method
             get_method = getattr(self, origin_method)
+            #processors = self.syncprocess_set.all()
             post_method = getattr(self, destiny_method)
 
             # mapping req parameters with application values
@@ -237,6 +239,12 @@ class Sync(models.Model, SyncMethods):
 
             # executing methods
             origin_response = get_method(**parse_origin_params)
+            
+            # custom processes
+            for process in self.syncprocess_set.all():
+                # recursive call
+                exec(process.expression)
+
             destiny_response = post_method(origin_response, **parse_dest_params)
 
             # log update
@@ -312,3 +320,28 @@ class SyncHistory(models.Model):
         return self.sync.destiny
     get_destiny.short_description = "Destiny"
     get_destiny.admin_order_field = "sync__destiny"
+
+
+class SyncProcess(models.Model):
+    sync = models.ForeignKey("Sync", on_delete=models.CASCADE)
+    order = models.PositiveSmallIntegerField(default=0)
+    #reduce = models.BooleanField(default=False)
+    name = models.CharField(max_length=100, blank=False, null=False)
+    _help = models.CharField(
+        verbose_name=_("Help"),
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text=_('About the procedure.')
+    )
+    expression = models.TextField(
+        null=True,
+        blank=True,
+        help_text='Procedure that can process the origin response "origin_response".'
+    )
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.name

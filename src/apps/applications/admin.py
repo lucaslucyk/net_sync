@@ -24,6 +24,7 @@ class CredentialAdmin(admin.ModelAdmin):
     search_fields = ["application", "comment"]
     #autocomplete_fields = ['application']
 
+
 class SyncParamsInline(admin.StackedInline):
     model = models.SyncParameter
     extra = 0
@@ -31,10 +32,17 @@ class SyncParamsInline(admin.StackedInline):
     form = forms.SyncParameterForm
 
 
+class SyncProcessInline(admin.StackedInline):
+    model = models.SyncProcess
+    extra = 0
+    ordering = ("sync__synchronize", 'order') #, 'reduce')
+    form = forms.SyncProcessForm
+
+
 @admin.register(models.Sync)
 class SyncsAdmin(admin.ModelAdmin):
 
-    inlines = [SyncParamsInline]
+    inlines = [SyncParamsInline, SyncProcessInline]
     fields = (
         'synchronize', 'origin', 'destiny', 'cron_expression', 'active',
         'status', 'get_last_run', 'get_next_run', 'needs_run'
@@ -74,6 +82,7 @@ class SyncsAdmin(admin.ModelAdmin):
         )
 
     execute.short_description = _("Execute")
+
 
 @admin.register(models.SyncHistory)
 class SyncHistoryAdmin(admin.ModelAdmin):
