@@ -243,8 +243,10 @@ class Sync(models.Model, SyncMethods):
             # custom processes
             for process in self.syncprocess_set.all():
                 # recursive call
-                exec(process.expression)
+                origin_response = process.execute(origin_response)
+                #exec(process.expression)
 
+            # send to destiny method
             destiny_response = post_method(origin_response, **parse_dest_params)
 
             # log update
@@ -326,6 +328,7 @@ class SyncProcess(models.Model):
     sync = models.ForeignKey("Sync", on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField(default=0)
     #reduce = models.BooleanField(default=False)
+    requirements = models.CharField(max_length=200, blank=True, null=True)
     name = models.CharField(max_length=100, blank=False, null=False)
     _help = models.CharField(
         verbose_name=_("Help"),
@@ -337,7 +340,8 @@ class SyncProcess(models.Model):
     expression = models.TextField(
         null=True,
         blank=True,
-        help_text='Procedure that can process the origin response "origin_response".'
+        help_text='Procedure that can process the origin response \
+            "origin_response".'
     )
 
     class Meta:
@@ -345,3 +349,31 @@ class SyncProcess(models.Model):
 
     def __str__(self):
         return self.name
+
+    def set_method(self):
+        
+        # requirements to locals
+        if self.requirements: 
+            if not isinstance(self.requirements, list):
+                requirements = self.requirements.replace(' ', '').split(',')
+            else:
+                requirements = self.requirements
+
+            for req in requirements:
+                # parse if is submodule
+                req_name = req.split('.')
+                import_express = '{} = importlib.import_module("{}")'.format(
+                    req_name[-1],
+                    req
+                )
+                exec(import_express)
+
+        # method expression
+        method_expression = self.expression + '\n'
+        method_expression += f'self.method = {self.name}'
+        exec(method_expression)
+        return self.method
+
+    def execute(self, *args, **kwargs):
+        method = getattr(self, 'method', self.set_method())
+        return method(*args, **kwargs)

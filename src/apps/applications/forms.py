@@ -23,7 +23,7 @@ class SyncParameterForm(ModelForm):
 class SyncProcessForm(ModelForm):
     class Meta:
         model = models.SyncProcess
-        fields = ('order', 'name', '_help', 'expression') #, 'reduce')
+        fields = ('order', 'name', '_help', 'requirements', 'expression')
 
         widgets = {
             'expression': Textarea(),
