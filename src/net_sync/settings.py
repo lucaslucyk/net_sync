@@ -12,9 +12,19 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+# current version
+__version__ = "0.5.7"
+
+# try get custom settings
+try:
+    json_file = os.path.join(BASE_DIR, "net_sync", "mysettings.json")
+    with open(json_file, encoding='utf-8') as f:
+        USER_SETTINGS = json.load(f)
+except:
+    USER_SETTINGS = {}
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -23,9 +33,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'k41a#*+rw^aqnorst9hwh@42)m4joe(&$qvw)y6x5&2*orf-3a'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = USER_SETTINGS.get('DEBUG', True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = USER_SETTINGS.get('ALLOWED_HOSTS', ['*'])
 
 # Application definition
 
@@ -80,7 +90,7 @@ WSGI_APPLICATION = 'net_sync.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
+DATABASES = USER_SETTINGS.get('DATABASES') or {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
@@ -110,8 +120,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'America/Argentina/Buenos_Aires'  # 'UTC'
+LANGUAGE_CODE = USER_SETTINGS.get('LANGUAGE_CODE', 'en-us')
+TIME_ZONE = USER_SETTINGS.get('TIME_ZONE', 'America/Argentina/Buenos_Aires')
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True

@@ -13,7 +13,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 ### own ###
-from utils.methods import SyncMethods
+from utils.api import SyncMethods
 
 ### third ###
 import croniter
@@ -340,8 +340,7 @@ class SyncProcess(models.Model):
     expression = models.TextField(
         null=True,
         blank=True,
-        help_text='Procedure that can process the origin response \
-            "origin_response".'
+        help_text='Procedure that can process the origin response "origin_response".'
     )
 
     class Meta:

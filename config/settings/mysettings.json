@@ -1,0 +1,13 @@
+{
+  "DEBUG": false,
+  "DATABASES": {
+    "default": {
+      "ENGINE": "<django_backend>",
+      "HOST": "<database_host>",
+      "PORT": "<database_port>",
+      "NAME": "<database_name>",
+      "USER": "<database_user>",
+      "PASSWORD": "<database_password>"
+    }
+  }
+}
