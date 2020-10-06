@@ -494,8 +494,8 @@ class SyncMethods(object):
         # return true for general propose
         return True
 
-    def post_nt6_departments(self, structure: list, fields: list,
-                             levels: list = [], reverse: bool = False):
+    def post_nt6_departments(self, structure: list, fields: list, \
+            levels: list = [], reverse: bool = False):
         """
         Send structure to nettime with spec_utils.nettime6 module.
         

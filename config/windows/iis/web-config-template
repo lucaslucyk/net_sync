@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="Python FastCGI" 
+      path="*" 
+      verb="*" 
+      modules="FastCgiModule" 
+      scriptProcessor="<to be filled in>" 
+      resourceType="Unspecified" 
+      requireAccess="Script" />
+    </handlers>
+  </system.webServer>
+
+  <appSettings>
+    <add key="PYTHONPATH" value="C:\inetpub\wwwroot\net_sync\src" />
+    <add key="WSGI_HANDLER" value="net_sync.wsgi.application" />
+    <add key="DJANGO_SETTINGS_MODULE" value="net_sync.settings" />
+  </appSettings>
+</configuration>

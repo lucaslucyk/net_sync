@@ -27,7 +27,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_description_ = 'Cron service for NetSync'
 
     def __init__(self, args):
-        win32serviceutil.ServiceFramework.__init__(self, args)
+        super().__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         socket.setdefaulttimeout(60)
 
