@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 
 # current version
-__version__ = "0.5.7"
+__version__ = "0.6.1"
 
 # try get custom settings
 try:
@@ -199,6 +199,21 @@ CONFIG_FUNCS = {
         'to': {
             'nettime6': {
                 'method': 'post_nt6_departments',
+            }
+        }
+    },
+    'results': {
+        'from': {
+            'nettime6': {
+                'method': 'get_nt6_results',
+            },
+            'manager': {
+                'method': 'get_smdb_results',
+            }
+        },
+        'to': {
+            'visma': {
+                'method': 'post_visma_payments',
             }
         }
     }

@@ -287,8 +287,46 @@ class SyncMethods(object):
             fields_def=[FieldDefinition.from_json(f) for f in fields]
         )
 
-    def get_visma_employees(self, fields: list, active: bool = None,
-                            extensions: list = [], pageSize: int = 5, all_pages: bool = False):
+    def get_nt6_results(self, params: dict, fields: list):
+        """
+        Get cube results from nettime with spec_utils.nettime6 module.
+        
+        @@ Parameters
+        @params (dict):
+            Dict parameters for parsed pass to client.get_cube_results(). Eg.
+            {
+                "dateIni": "2020-07-02",
+                "dateEnd": "2020-07-04",
+                "dimensions": [
+                    ["id", "Apellidos_Nombre"],
+                    ["date"],
+                    [
+                        "ResultValue_C.Min.NORMALES",
+                        "ResultValue_S.Min.Jornada_teorica"
+                    ]
+                ]
+            }
+            *Last element of "dimensions" key will be interpreted how "column".
+        @fields (list):
+            List of api.FieldDefinition elements.
+        
+        @@ Returns
+        @list: list of elements obtained from nettime and processed with the 
+            "fields" parameter.
+        """
+
+        # open api connection with auto-disconnect
+        with self.open_nt6_connection(source="origin") as client:
+            # get results
+            cube_results = client.get_cube_results(**params)
+
+        return self.apply_fields_def(
+            structure=cube_results,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
+
+    def get_visma_employees(self, fields: list, active: bool = None, \
+            extensions: list = [], pageSize: int = 5, all_pages: bool = False):
         """
         Get employees from visma with spec_utils.visma module.
         
@@ -415,6 +453,26 @@ class SyncMethods(object):
         # return structure
         return self.apply_fields_def(
             structure=sm_employees,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
+
+    def get_smdb_results(self, fields: list = [], from_table: str, \
+            marc_col: str, auto_update: bool = True, **kwargs):
+        """ Get results from custom table in SPEC Manager. """
+
+        # open api connection with auto-disconnect
+        with self.open_smdb_connection(source="origin") as client:
+            results = client.sync_results(
+                from_table=from_table,
+                marc_col=marc_col,
+                auto_update=auto_update,
+                to_records=kwargs.get('to_records', True),
+                top=kwargs.get('top', 5),
+            )
+
+        # return structure
+        return self.apply_fields_def(
+            structure=results,
             fields_def=[FieldDefinition.from_json(f) for f in fields]
         )
 
@@ -545,4 +603,31 @@ class SyncMethods(object):
                     )
 
         # return true for general propose
+        return True
+
+    def post_visma_payments(self, structure: list, fields: list, **kwargs):
+        """
+        Send structure with payment values to visma with spec_utils.visma mod.
+        
+        @@ Parameters
+        @structure (list):
+            List of dict of departments. Must have 'nif' and 'path' elements.
+        @fields (list):
+            List of api.FieldDefinition to apply in structure* structure.
+
+        @@ Returns
+        @bool: True if no error occurred in the nettime api.
+        """
+
+        # updating structure with field_def
+        structure = self.apply_fields_def(
+            structure=structure,
+            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        )
+
+        with self.open_visma_connection(source="destiny") as client:
+
+            # send data
+            result = client.post_pay_elements(values=structure, **kwargs)
+
         return True

@@ -13,6 +13,10 @@ from . import tupleware
 ### third ###
 # ...
 
+def set_value(obj: dict, value):
+    """ Return a value to set in a like structure. """
+    return value
+
 def rget(obj: dict, key: str, *args):
     """ Recursive get() with obj.get(key, *args) path. """
     def _get(obj, key):

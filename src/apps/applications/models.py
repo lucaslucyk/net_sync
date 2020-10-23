@@ -212,7 +212,6 @@ class Sync(models.Model, SyncMethods):
 
             # str to method
             get_method = getattr(self, origin_method)
-            #processors = self.syncprocess_set.all()
             post_method = getattr(self, destiny_method)
 
             # mapping req parameters with application values
@@ -243,7 +242,7 @@ class Sync(models.Model, SyncMethods):
             # custom processes
             for process in self.syncprocess_set.all():
                 # recursive call
-                origin_response = process.execute(origin_response)
+                origin_response = process.execute(self, origin_response)
                 #exec(process.expression)
 
             # send to destiny method
