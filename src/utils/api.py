@@ -456,7 +456,7 @@ class SyncMethods(object):
             fields_def=[FieldDefinition.from_json(f) for f in fields]
         )
 
-    def get_smdb_results(self, fields: list = [], from_table: str, \
+    def get_smdb_results(self, fields: list, from_table: str, \
             marc_col: str, auto_update: bool = True, **kwargs):
         """ Get results from custom table in SPEC Manager. """
 
