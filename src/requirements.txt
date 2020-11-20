@@ -8,3 +8,4 @@ croniter
 pyodbc
 sqlalchemy
 python-dateutil
+Unidecode

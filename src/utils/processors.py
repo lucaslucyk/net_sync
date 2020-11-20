@@ -11,7 +11,7 @@ import operator
 from . import tupleware
 
 ### third ###
-# ...
+from unidecode import unidecode
 
 def set_value(obj: dict, value):
     """ Return a value to set in a like structure. """
@@ -232,3 +232,29 @@ def extract(obj, end: int = None, start: int = None, step: int = None):
 
     # process and return
     return obj[start:end:step]
+
+def to_ascii(obj):
+    """
+    Remove characters non ascii from a word, replacing for match ascii.
+    """
+
+    return unidecode(obj)
+
+def str_method(obj, method: str):
+    """
+    Apply a method to obj (str).
+    """
+
+    func = getattr(obj, method, None)
+    
+    if not func:
+        return None
+    
+    return func()
+
+def str_attr(obj, attr: str):
+    """
+    Get a attribute of str.
+    """
+
+    return getattr(obj, attr, None)
