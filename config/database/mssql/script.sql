@@ -1,10 +1,14 @@
-/***** AR_IMP_PERSONAL *****/
+/***** SET BLOBALS *****/
+USE [SPECMANAGER]
+GO
+
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
+/***** AR_IMP_PERSONAL *****/
 CREATE TABLE [dbo].[AR_IMP_PERSONAL](
 	[SISTEMA] [varchar](10) NULL,
 	[ESTADO] [varchar](10) NULL,
@@ -80,12 +84,6 @@ ALTER TABLE [dbo].[AR_IMP_PERSONAL] ADD  DEFAULT ((0)) FOR [EMPLEO]
 GO
 
 /***** AR_DOWNCONF *****/
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
 CREATE TABLE [dbo].[AR_DOWNCONF](
 	[DATE_TIME] [datetime] NULL,
 	[TABLE_NAME] [varchar](max) NULL,
@@ -115,6 +113,7 @@ BEGIN
 
     RETURN @path;
 END;
+GO
 
 /***** custom view to expose department path *****/
 CREATE VIEW [dbo].[AR_PERSO_DEPTOS]
@@ -129,16 +128,6 @@ GO
 -- after can use select * from [dbo].[AR_PERSO_DEPTOS]
 
 /***** Contractors import table *****/
-
---USE [LEDESMA]
---GO
-
-SET ANSI_NULLS ON
-GO
-
-SET QUOTED_IDENTIFIER ON
-GO
-
 CREATE TABLE [dbo].[AR_IMP_CONTRATAS](
 	[SISTEMA] [varchar](10) NULL,
 	[CENTRO] [varchar](50) NULL,
@@ -180,3 +169,13 @@ CREATE TABLE [dbo].[AR_IMP_CONTRATAS](
 	[GRUPO_H] [varchar](40) NULL,
 ) ON [PRIMARY]
 GO
+
+/***** Centers dictionary *****/
+CREATE TABLE [dbo].[DIC_PLANTAS_CENTROS](
+	[CODIGO] [varchar](50) NULL,
+	[NOMBRE] [varchar](255) NULL,
+	[APLICACION] [varchar](255) NULL,
+	[NOMRE_CORTO] [varchar](50) NULL,
+) ON [PRIMARY]
+GO
+
