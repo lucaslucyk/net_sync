@@ -361,7 +361,7 @@ class SyncMethods(object):
 
             # no detail
             response = client.get_employees(
-                active=False,
+                active=active,
                 updatedFrom=last_run,
                 pageSize=pageSize,
                 all_pages=all_pages
