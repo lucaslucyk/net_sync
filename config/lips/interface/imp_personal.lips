@@ -34,47 +34,31 @@ SI (campo("COD_CENT") <> "") ENTONCES
   SINO
     $search_by = 0 ;
   FSI;
-  buscaCentro(campo("COD_CENT"), $search_by);
-FSI;
-
-// hire date
-SI ($f_alta <> "") ENTONCES
-  fecha_alta_empresa = $f_alta;
-SINO
-  fecha_alta_empresa = hoy();
-FSI;
-
-SI (buscaPersonaPorDNI()) ENTONCES
-  // cod pers
-  SI (campo("COD_PERS") <> "") ENTONCES
-    codigo = campo("COD_PERS");
-  FSI;
   
-  // update...
-  modificaPersona();
-  
-  // check hire date
-  SI ($f_alta <> "" Y campo("ESTADO") <> "0") ENTONCES
-    fecha = $f_alta;
-    ponAlta();
-  FSI;
-  
-  // refresh date
-  fecha = hoy();
-  
-  // after of update, apply general changes
-  lanzaInterfaz("IMP_PERSONAL_FOUND", "", "");
-  
-SINO
-  // cod pers
-  SI (campo("COD_PERS") <> "") ENTONCES
-    codigo = campo("COD_PERS");
+  SI (buscaCentro(campo("COD_CENT"), $search_by)) ENTONCES
+    $center_found = 1 ;
   SINO
-    codigo = matricula_persona;
+    $center_found = 0 ;
   FSI;
+FSI;
+
+SI ($center_found == 1) ENTONCES
+  // hire date
+  SI ($f_alta <> "") ENTONCES
+    fecha_alta_empresa = $f_alta;
+  SINO
+    fecha_alta_empresa = hoy();
+  FSI;
+
+  SI (buscaPersonaPorDNI()) ENTONCES
+    // cod pers
+    SI (campo("COD_PERS") <> "") ENTONCES
+      codigo = campo("COD_PERS");
+    FSI;
     
-  // create
-  SI (creaPersona()) ENTONCES
+    // update...
+    modificaPersona();
+    
     // check hire date
     SI ($f_alta <> "" Y campo("ESTADO") <> "0") ENTONCES
       fecha = $f_alta;
@@ -84,10 +68,32 @@ SINO
     // refresh date
     fecha = hoy();
     
-    // after of create, apply general changes
+    // after of update, apply general changes
     lanzaInterfaz("IMP_PERSONAL_FOUND", "", "");
+    
   SINO
-    informa("Could not be created the employee with the DNI " + dni);
+    // cod pers
+    SI (campo("COD_PERS") <> "") ENTONCES
+      codigo = campo("COD_PERS");
+    SINO
+      codigo = matricula_persona;
+    FSI;
+      
+    // create
+    SI (creaPersona()) ENTONCES
+      // check hire date
+      SI ($f_alta <> "" Y campo("ESTADO") <> "0") ENTONCES
+        fecha = $f_alta;
+        ponAlta();
+      FSI;
+      
+      // refresh date
+      fecha = hoy();
+      
+      // after of create, apply general changes
+      lanzaInterfaz("IMP_PERSONAL_FOUND", "", "");
+    SINO
+      informa("Could not be created the employee with the DNI " + dni);
+    FSI;
   FSI;
 FSI;
-

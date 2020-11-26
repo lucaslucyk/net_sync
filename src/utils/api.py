@@ -378,6 +378,7 @@ class SyncMethods(object):
                         f'_{extension}': client.get_employees(
                             employee=f'rh-{result.get("id")}',
                             extension=extension,
+                            all_pages=True
                         ).get('values', [])
                     })
 
