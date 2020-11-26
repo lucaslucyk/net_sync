@@ -353,37 +353,43 @@ class SyncMethods(object):
         if self.get_last_run():
             last_run = self.get_last_run().strftime("%Y-%m-%d")
 
+        # create a client
+        client = self.open_visma_connection(source="origin")
+
         # open api connection with auto-disconnect
-        with self.open_visma_connection(source="origin") as client:
+        #with self.open_visma_connection(source="origin") as client:
 
-            # out employees
-            employees_detail = []
+        # out employees
+        employees_detail = []
 
-            # no detail
-            response = client.get_employees(
-                active=active,
-                updatedFrom=last_run,
-                pageSize=pageSize,
-                all_pages=all_pages
+        # no detail
+        response = client.get_employees(
+            active=active,
+            updatedFrom=last_run,
+            pageSize=pageSize,
+            all_pages=all_pages
+        )
+
+        for result in response.get('values'):
+            # get employee detail
+            employee = client.get_employees(
+                employee=f'rh-{result.get("id")}'
             )
+            # optional extension/s
+            for extension in extensions:
+                employee.update({
+                    f'_{extension}': client.get_employees(
+                        employee=f'rh-{result.get("id")}',
+                        extension=extension,
+                        all_pages=True
+                    ).get('values', [])
+                })
 
-            for result in response.get('values'):
-                # get employee detail
-                employee = client.get_employees(
-                    employee=f'rh-{result.get("id")}'
-                )
-                # optional extension/s
-                for extension in extensions:
-                    employee.update({
-                        f'_{extension}': client.get_employees(
-                            employee=f'rh-{result.get("id")}',
-                            extension=extension,
-                            all_pages=True
-                        ).get('values', [])
-                    })
+            # push employee in detail list
+            employees_detail.append(employee)
 
-                # push employee in detail list
-                employees_detail.append(employee)
+        client.disconnect()
+        del client
 
         #print(employees_detail)
         return self.apply_fields_def(
