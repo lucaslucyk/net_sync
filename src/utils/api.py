@@ -264,8 +264,8 @@ class SyncMethods(object):
 
         # getting last run or default value
         last_run = '2000-01-01'
-        if self.get_last_run():
-            last_run = self.get_last_run().strftime("%Y-%M-%d")
+        if self.get_previous_run():
+            last_run = self.get_previous_run().strftime("%Y-%m-%d %H:%M:%S")
 
         # open api connection with auto-disconnect
         with self.open_nt6_connection(source="origin") as client:
@@ -350,8 +350,8 @@ class SyncMethods(object):
 
         # getting last run or default value
         last_run = '2000-01-01'
-        if self.get_last_run():
-            last_run = self.get_last_run().strftime("%Y-%m-%d")
+        if self.get_previous_run():
+            last_run = self.get_previous_run().strftime("%Y-%m-%d %H:%M:%S")
 
         # open api connection with auto-disconnect
         with self.open_visma_connection(source="origin") as client:

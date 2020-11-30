@@ -132,8 +132,24 @@ class Sync(models.Model, SyncMethods):
         if not history:
             return None
         # return end_time
-        return history.start_time
+        return history.end_time
     get_last_run.short_description = "Last Run"
+
+    def get_previous_run(self):
+        """
+        Get previous sync history of sync and return end_time property.
+        """
+
+        # get last history
+        history = self.synchistory_set.exclude(end_time__isnull=True).last()
+
+        # if never run
+        if not history:
+            return None
+
+        # return end_time
+        return history.end_time
+    get_previous_run.short_description = "Previous Run"
 
     def get_next_run(self):
         """ Return datetime with scheduled next time. """
