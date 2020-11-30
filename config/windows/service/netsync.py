@@ -12,7 +12,7 @@ import subprocess
 from datetime import datetime
 
 # path to manage.py file
-MANAGE_FILE = r'D:\Documentos\Programming\Python\spec\net_sync\src\manage.py'
+MANAGE_FILE = r'C:\inetpub\wwwroot\net_sync\src\manage.py'
 # path to netsync log file
 LOG_FILE = r'C:\ProgramData\NetSync\netsync.log'
 # minutes to refresh
@@ -27,7 +27,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_description_ = 'Cron service for NetSync'
 
     def __init__(self, args):
-        super().__init__(self, args)
+        win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         socket.setdefaulttimeout(60)
 
@@ -101,4 +101,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
 if __name__ == '__main__':
     # create service with custom class
-    win32serviceutil.HandleCommandLine(AppServerSvc)
+    if len(sys.argv) == 1:
+        servicemanager.Initialize()
+        servicemanager.PrepareToHostSingle(AppServerSvc)
+        servicemanager.StartServiceCtrlDispatcher()
+    else:
+        win32serviceutil.HandleCommandLine(AppServerSvc)
