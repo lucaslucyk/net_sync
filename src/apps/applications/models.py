@@ -147,8 +147,8 @@ class Sync(models.Model, SyncMethods):
         if not history:
             return None
 
-        # return end_time
-        return history.end_time
+        # return start_time
+        return history.start_time
     get_previous_run.short_description = "Previous Run"
 
     def get_next_run(self):
