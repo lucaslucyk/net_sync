@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import json
 
 # current version
 __version__ = "0.6.1"
@@ -205,7 +206,7 @@ CONFIG_FUNCS = {
     'results': {
         'from': {
             'nettime6': {
-                'method': 'get_nt6_results',
+                'method': 'get_nt6_result_syncs',
             },
             'manager': {
                 'method': 'get_smdb_results',

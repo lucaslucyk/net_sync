@@ -1,5 +1,5 @@
 django==2.2.13
-spec-utils==0.7.5
+spec-utils==0.8.0
 pandas
 django-extensions
 ipython
