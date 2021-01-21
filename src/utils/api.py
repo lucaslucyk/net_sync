@@ -19,6 +19,49 @@ from spec_utils import specmanagerdb as smdb
 import pandas as pd
 
 
+class NetTimeResult:
+    """ Class to process formats from nettime result value. """
+
+    def __init__(self, value):
+        self.value = value
+
+    @property
+    def _timedelta(self):
+        """ Return python datetime.timedelta object. """
+
+        return dt.timedelta(minutes=self.value)
+
+    @property
+    def hours(self):
+        """ Return the number of hours assuming that is a time format. """
+
+        return int(self.value // 60)
+
+    @property
+    def minutes(self):
+        """ Return the number of minutes assuming that is a time format. """
+
+        return int(self.value)
+
+    @property
+    def seconds(self):
+        """ Return the number of seconds assuming that is a time format. """
+
+        return int(self.value * 60)
+
+    @property
+    def centesimal_time(self):
+        """ Return time centesimal format assuming that is a time format. """
+
+        dif = self.minutes - self.hours * 60
+        return float('{:.2f}'.format(self.hours + dif / 60))
+
+    def __repr__(self):
+        return '{}(value={})'.format(self.__class__.__name__, self.value)
+
+    def __bool__(self):
+        return bool(self.value)
+
 class FieldDefinition:
 
     def __init__(self, out_name: str, in_name: str, steps: list=None, \
@@ -134,7 +177,7 @@ class FieldDefinition:
 
 class SyncMethods(object):
 
-    def open_nt6_connection(self, source: str):
+    def open_nt6_connection(self, source: str, **kwargs):
         """
         Create and return a nettime client.
         Source specify origin or destiny conn.
@@ -147,9 +190,9 @@ class SyncMethods(object):
         pwd = params.filter(key='password').first().value
 
         # create and return client
-        return nt6.Client(url=host, username=username, pwd=pwd)
+        return nt6.Client(url=host, username=username, pwd=pwd, **kwargs)
 
-    def open_visma_connection(self, source: str):
+    def open_visma_connection(self, source: str, **kwargs):
         """
         Create and return a visma client.
         Source specify origin or destiny conn.
@@ -162,9 +205,9 @@ class SyncMethods(object):
         pwd = params.filter(key='password').first().value
 
         # create and return client
-        return visma.Client(url=host, username=username, pwd=pwd)
+        return visma.Client(url=host, username=username, pwd=pwd, **kwargs)
 
-    def open_exactian_connection(self, source: str):
+    def open_exactian_connection(self, source: str, **kwargs):
         """
         Create and return a visma client.
         Source specify origin or destiny conn.
@@ -177,9 +220,9 @@ class SyncMethods(object):
         pwd = params.filter(key='password').first().value
 
         # create and return client
-        return exactian.Client(url=host, username=username, pwd=pwd)
+        return exactian.Client(url=host, username=username, pwd=pwd, **kwargs)
 
-    def open_smdb_connection(self, source: str):
+    def open_smdb_connection(self, source: str, **kwargs):
         """
         Create and return a specmanagerdb client.
         Source specify origin or destiny conn.
@@ -199,7 +242,8 @@ class SyncMethods(object):
             pwd=pwd,
             server=server,
             database=database,
-            controller=controller
+            controller=controller,
+            **kwargs
         )
 
     def apply_fields_def(self, structure: list, fields_def: list):
@@ -539,6 +583,7 @@ class SyncMethods(object):
 
                 # append data to output list
                 all_elements.append({
+                    "sync_id": sync.get("id"),
                     "sync_name": sync.get("name"),
                     "sync_type": sync.get("type"),
                     "from": params.get("dateIni"),
@@ -546,11 +591,20 @@ class SyncMethods(object):
                     "data": out_data
                 })
 
+                # update synchronized property
+                sync["nsSynchronized"] = True
+                response = client.save_element(
+                    container="Custom",
+                    elements=[sync.get('id')],
+                    dataObj=sync
+                )
+
         # return all structures
         return all_elements
 
     def get_visma_employees(self, fields: list, active: bool = None, \
-            extensions: list = [], pageSize: int = 5, all_pages: bool = False):
+            extensions: list = [], pageSize: int = 5, \ 
+            all_pages: bool = False, tenant_filter: dict = None):
         """
         Get employees from visma with spec_utils.visma module.
         
@@ -578,7 +632,8 @@ class SyncMethods(object):
             last_run = self.get_previous_run().strftime("%Y-%m-%d %H:%M:%S")
 
         # open api connection with auto-disconnect
-        with self.open_visma_connection(source="origin") as client:
+        with self.open_visma_connection(
+                source="origin", tenant_filter=tenant_filter) as client:
 
             # out employees
             employees_detail = []
@@ -829,7 +884,90 @@ class SyncMethods(object):
         # return true for general propose
         return True
 
-    def post_visma_payments(self, structure: list, fields: list, **kwargs):
+    def ntRes_to_vismaPayments(self, syncs: list, sync_cfgs: dict, **kwargs):
+        """
+        Prepare visma payments request from nettime results.
+        
+        @@ Parameters
+        @syncs (list):
+            List of sync results from nettime (self.get_nt6_result_syncs).
+        @sync_cfgs (dict):
+            Dict with config to apply to syncs. Must include sync_type, 
+            employee_field, and concepts dict. Check docs for +info.
+
+        @@ Returns
+        @list: List of payment elements to send to Visma.
+        """
+
+        # out structure
+        all_payments = []
+
+        # all syncs recived
+        for _sync in syncs:
+            # all data* elements
+            for elem in _sync.get('data'):
+                # all concepts of config
+                for concept, cfg in sync_cfgs.get(
+                        _sync.get('sync_type')).get('concepts').items():
+                    
+                    # total value of current concept
+                    ntv = elem.get('totals').get(cfg.get('result'))
+
+                    # ignore next steps if is 0
+                    if not ntv and cfg.get('zero_ignore', True):
+                        continue
+
+                    # if ntv != 0
+                    structure = {
+                        "employeeExternalId": elem.get('employee').get(
+                            sync_cfgs.get(
+                                _sync.get('sync_type')
+                            ).get('employee_field', 'employeeCode')
+                        ),
+                        "periodFrom": _sync.get('from'),
+                        "periodTo": _sync.get('from'),
+                        "reason": "",
+                        "reasonTypeExternalId": "",
+                        "action": 0,
+                        "retroactive": False,
+                        # "journalModelId": 0,
+                        # "journalModelStructureId1": 0,
+                        # "journalModelStructureId2": 0,
+                        # "journalModelStructureId3": 0,
+                        "conceptExternalId": concept,
+                        "parameterId": cfg.get('parameter', 3),
+                        #"dateFrom": "",
+                        #"dateTo": "",
+                        "value": getattr(
+                            NetTimeResult(value=ntv),
+                            cfg.get('property', 'centesimal_time')
+                        )
+                    }
+
+                    # append structure to out elements
+                    all_payments.append(structure)
+
+        # return structure
+        return all_payments
+
+        def smRes_to_vismaPayments(self, syncs: list, sync_cfgs: dict, **kwargs):
+            """
+            Prepare visma payments request from nettime results.
+            
+            @@ Parameters
+            @syncs (list):
+                List of sync results from nettime (self.get_nt6_result_syncs).
+            @sync_cfgs (dict):
+                Dict with config to apply to syncs. Must include sync_type, 
+                employee_field, and concepts dict. Check docs for +info.
+
+            @@ Returns
+            @list: List of payment elements to send to Visma.
+            """
+
+            return
+
+    def post_visma_payments(self, structure: list, sync_cfgs: dict, **kwargs):
         """
         Send structure with payment values to visma with spec_utils.visma mod.
         
@@ -844,14 +982,24 @@ class SyncMethods(object):
         """
 
         # updating structure with field_def
-        structure = self.apply_fields_def(
-            structure=structure,
-            fields_def=[FieldDefinition.from_json(f) for f in fields]
+        elements = self.ntRes_to_vismaPayments(
+            syncs=structure,
+            sync_cfgs=sync_cfgs
         )
 
+        # if can't get elements
+        if not elements:
+            return True
+
+        # open temporal visma client
         with self.open_visma_connection(source="destiny") as client:
 
             # send data
-            result = client.post_pay_elements(values=structure, **kwargs)
+            result = client.post_pay_elements(values=elements, **kwargs)
 
+        # general propose
+        if not result:
+            return False
+
+        # general propose
         return True

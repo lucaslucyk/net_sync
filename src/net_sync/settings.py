@@ -14,7 +14,7 @@ import os
 import json
 
 # current version
-__version__ = "0.6.1"
+__version__ = "0.8.1"
 
 # try get custom settings
 try:

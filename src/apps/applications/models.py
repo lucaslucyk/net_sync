@@ -355,7 +355,7 @@ class SyncProcess(models.Model):
     expression = models.TextField(
         null=True,
         blank=True,
-        help_text='Procedure that can process the origin response "origin_response".'
+        help_text='Procedure that can process the "origin_response".'
     )
 
     class Meta:
