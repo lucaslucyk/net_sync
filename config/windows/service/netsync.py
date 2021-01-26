@@ -100,6 +100,9 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
 
 if __name__ == '__main__':
+
+    import sys
+    
     # create service with custom class
     if len(sys.argv) == 1:
         servicemanager.Initialize()

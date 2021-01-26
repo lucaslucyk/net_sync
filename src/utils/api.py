@@ -603,7 +603,7 @@ class SyncMethods(object):
         return all_elements
 
     def get_visma_employees(self, fields: list, active: bool = None, \
-            extensions: list = [], pageSize: int = 5, \ 
+            extensions: list = [], pageSize: int = 5, \
             all_pages: bool = False, tenant_filter: dict = None):
         """
         Get employees from visma with spec_utils.visma module.

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ### built-in ###
-import datetime
+import datetime as dt
 import json
 import importlib
 
@@ -156,7 +156,7 @@ class Sync(models.Model, SyncMethods):
         try:
             lr = self.get_last_run()
             cron = croniter.croniter(self.cron_expression, lr or now())
-            return cron.get_next(datetime.datetime)
+            return cron.get_next(dt.datetime)
         except Exception as error:
             return None
     get_next_run.short_description = "Next Run"

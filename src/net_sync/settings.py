@@ -16,6 +16,9 @@ import json
 # current version
 __version__ = "0.8.1"
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # try get custom settings
 try:
     json_file = os.path.join(BASE_DIR, "net_sync", "mysettings.json")
@@ -23,9 +26,6 @@ try:
         USER_SETTINGS = json.load(f)
 except:
     USER_SETTINGS = {}
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/

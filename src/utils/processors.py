@@ -2,6 +2,7 @@
 
 ### built-in ###
 from dateutil.parser import parse
+import datetime as dt
 import functools
 import operator
 
@@ -258,3 +259,20 @@ def str_attr(obj, attr: str):
     """
 
     return getattr(obj, attr, None)
+
+def date_to_ActiveDays(obj, is_active: bool = True):
+    """
+    Convert a str date to ActiveDays structure for nettime.
+    """
+    _obj = obj
+    if _obj.__class__.__name__ not in ["datetime", "date"]:
+        _obj = parse(_obj)
+
+    return {
+        "validity": [{
+            "start": _obj.date().isoformat(),
+            "end": "{}T00:00:00-03:00".format(
+                "2040-12-31" if is_active else dt.date.today().isoformat()
+            )
+        }]
+    }

@@ -1,5 +1,6 @@
 # own
-net_sync/mysettings.json
+src/net_sync/mysettings.json
+src/notebooks/tdevs.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
