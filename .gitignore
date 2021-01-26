@@ -1,3 +1,9 @@
+# frontend
+src/apps/frontend/node_modules
+src/apps/frontend/.pnp
+.pnp.js
+package-lock.json
+
 # own
 src/net_sync/mysettings.json
 src/notebooks/tdevs.ipynb

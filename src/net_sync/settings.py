@@ -50,9 +50,12 @@ INSTALLED_APPS = [
 
     # third
     'django_extensions',
+    'rest_framework',
 
     # own
     'apps.applications',
+    'apps.api',
+    'apps.frontend'
 ]
 
 SHELL_PLUS = 'notebook'
@@ -141,8 +144,9 @@ STATICFILES_DIRS = [
 STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'publish/static')
 MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'publish/media')
 
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/logout/?next=/'
+LOGIN_REDIRECT_URL = '/admin/'
+#LOGOUT_REDIRECT_URL = '/accounts/logout/?next=/'
+LOGOUT_REDIRECT_URL = '/admin/logout/?next=/admin/'
 
 
 ### APP SETTINGS ###
