@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
+from django.contrib.auth.models import User
 
 ### own ###
 from utils.api import SyncMethods
@@ -18,7 +19,55 @@ from utils.api import SyncMethods
 ### third ###
 import croniter
 
+class Company(models.Model):
+    name = models.CharField(
+        max_length=200,
+        blank=False,
+        null=False,
+        unique=True
+    )
+    country = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    city = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    address = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+    )
+    postal_code = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+    )
+    phone = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+    )
+    users = models.ManyToManyField(User, blank=True)
+
+    def is_authorized(self, user):
+        return self in user.company_set.all()
+
+    def __str__(self):
+        return self.name
+    
 class Credential(models.Model):
+
+    company = models.ForeignKey(
+        "Company",
+        blank=True,
+        null=True,
+        default=None,
+        on_delete=models.CASCADE
+    )
 
     application = models.CharField(
         max_length=20,

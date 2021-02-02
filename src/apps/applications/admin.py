@@ -7,6 +7,16 @@ from django.utils.translation import gettext as _
 admin.site.site_header = 'NetSync'
 admin.site.site_title = _("Sync for Grupo SPEC apps")
 admin.site.index_title = _("NetSync | Crafted by Lucas Lucyk")
+
+
+@admin.register(models.Company)
+class CompanyAdmin(admin.ModelAdmin):
+    model = models.Company
+    list_display = ('name', 'country', 'phone')
+    search_fields = ('name', 'country')
+
+    autocomplete_fields = ('users', )
+
 class CredParametersInLine(admin.StackedInline):
     model = models.CredentialParameter
     extra = 0
