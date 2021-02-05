@@ -23,6 +23,7 @@
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@material-ui/core": "^4.11.3",
+    "@material-ui/data-grid": "^4.0.0-alpha.18",
     "@material-ui/icons": "^4.11.2",
     "axios": "^0.21.1",
     "babel-preset-es2015": "^6.24.1",
@@ -35,10 +36,13 @@
     "prop-types": "^15.7.2",
     "react-chartist": "^0.14.3",
     "react-google-maps": "^9.4.5",
+    "react-redux": "^7.2.2",
     "react-router-dom": "^5.2.0",
     "react-scripts": "^4.0.1",
     "react-swipeable-views": "^0.13.9",
     "recharts": "^2.0.4",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0",
     "style-loader": "^2.0.0",
     "transform-class-properties": "^1.0.0-beta",
     "url-loader": "^4.1.1"

@@ -3,7 +3,8 @@ from .views import index
 
 urlpatterns = [
     path('', index),
-    #path('dashboard', index),
+    path('login', index),
+    path('logout', index),
     path('credentials', index),
     path('syncs', index),
     path('sync-logs', index),

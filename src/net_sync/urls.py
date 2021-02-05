@@ -26,5 +26,6 @@ urlpatterns = [
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('admin/', admin.site.urls),
     path('api/', include('apps.api.urls')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('', include('apps.frontend.urls'))
 ]

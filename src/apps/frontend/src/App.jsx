@@ -4,9 +4,11 @@ import {
   Switch,
   Route 
 } from 'react-router-dom';
-
+import { connect } from 'react-redux';
 import BaseContainer from './components/Base/Base';
 import menuItems from './menuItems';
+import LogIn from './pages/LogIn';
+import * as actions from './store/actions/auth';
 
 const makeRoute = (menu, level=0) => {
   return menu.map(({name, url, component, exact}) => {
@@ -21,11 +23,20 @@ const makeRoute = (menu, level=0) => {
 }
 
 class App extends Component {
+
+  componentDidMount(){
+    this.props.onTryAutoSignup();
+  }
+
   render() {
     return (
       <BrowserRouter>
-        <BaseContainer>
+        <BaseContainer {...this.props}>
           <Switch>
+            <Route 
+              path='/login'
+              component={LogIn}>
+            </Route>
             { makeRoute(menuItems.primary) }
             { makeRoute(menuItems.secondary) }
           </Switch>
@@ -35,4 +46,17 @@ class App extends Component {
   }
 }
 
-export default App;
+const mapStateToProps = state => {
+  return {
+    isAuthenticated: state.token != null
+  }
+}
+
+const mapDispatchToprops = dispatch => {
+  return {
+    onTryAutoSignup: () => dispatch(actions.authCheckState())
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToprops)(App);
+//export default App;
