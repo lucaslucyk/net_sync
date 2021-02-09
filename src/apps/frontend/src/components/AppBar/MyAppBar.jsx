@@ -19,7 +19,8 @@ import {
   InputBase,
   Menu,
   MenuItem,
-  Badge
+  Badge,
+  Switch
 } from '@material-ui/core';
 
 const drawerWidth = 240;
@@ -109,6 +110,15 @@ export default function MyAppBar(props) {
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
+  const [state, setState] = React.useState({
+    checkedA: true,
+    checkedB: true,
+  });
+
+  const handleChange = (event) => {
+    setState({ ...state, [event.target.name]: event.target.checked });
+  };
+
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -153,6 +163,17 @@ export default function MyAppBar(props) {
           <Typography variant="inherit">Sign In</Typography>
         </MenuItem>
       }
+      <MenuItem onClick={handleMenuClose} style={{ paddingLeft: '10px' }}>
+        <Switch
+          checked={state.checkedB}
+          onChange={handleChange}
+          color="primary"
+          name="checkedB"
+          size="small"
+          inputProps={{ 'aria-label': 'primary checkbox' }}
+        />
+        <Typography variant="inherit">Dark Theme</Typography>
+      </MenuItem>
     </Menu>
   );
 

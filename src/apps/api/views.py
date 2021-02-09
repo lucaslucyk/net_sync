@@ -10,7 +10,7 @@ from rest_framework.fields import CurrentUserDefault
 from apps.applications import models
 from .serializers import CredentialSerializer, CompanySerializer
 
-import time
+#import time
 
 class CompanyListView(APIView):
     serializer_class = CompanySerializer
@@ -34,7 +34,7 @@ class CredentialListView(APIView):
 
     def get(self, request, format=None):
 
-        time.sleep(3)
+        #time.sleep(2)
 
         if request.user.is_superuser or not request.user.is_authenticated:
             _ac = models.Company.objects.all()
