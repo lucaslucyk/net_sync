@@ -6,8 +6,10 @@ import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import GroupIcon from '@material-ui/icons/Group';
 import HelpIcon from '@material-ui/icons/Help';
 import HomeIcon from '@material-ui/icons/Home';
+import BusinessIcon from '@material-ui/icons/Business';
 
 import HomePage from './pages/Home';
+import CompaniesPage from './pages/Companies'
 import CredentialsPage from './pages/Credentials';
 import SyncPage from './pages/Syncs';
 import SyncLogsPage from './pages/SyncLogs';
@@ -23,6 +25,11 @@ const menuItems = {
     NavIcon: HomeIcon,
     component: HomePage
   },{
+    name: "My Companies",
+    url: "/companies",
+    NavIcon: BusinessIcon,
+    component: CompaniesPage
+  },,{
     name: "My Credentials",
     url: "/credentials",
     NavIcon: VpnKeyIcon,

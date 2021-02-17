@@ -11,17 +11,19 @@ export default function CompaniesPage(props) {
     loading: false,
     results: null,
     columns: [
-      { field: 'id', headerName: 'ID', flex: 0.2},
-      { field: 'sync_display', headerName: 'Sync', flex: 1.2},
-      { field: 'start_time', headerName: 'Start Time', flex: 0.6, type: 'dateTime'},
-      { field: 'end_time', headerName: 'End Time', flex: 0.6, type: 'dateTime'},
-      { field: 'ok', headerName: 'OK', flex: 0.2},
+      { field: 'id', headerName: 'ID', flex: 0.4 },
+      { field: 'name', headerName: 'Name', flex: 0.7 },
+      { field: 'country', headerName: 'Country', flex: 0.7 },
+      { field: 'city', headerName: 'City', flex: 0.7 },
+      { field: 'address', headerName: 'Address', flex: 0.7 },
+      { field: 'postal_code', headerName: 'Postal Code', flex: 0.7 },
+      { field: 'phone', headerName: 'Phone', flex: 0.7 },
     ]
   });
 
   useEffect(() => {
     setAppState({loading: true});
-    const apiUrl = '/api/v2.0/sync-history';
+    const apiUrl = '/api/v2.0/companies';
     fetch(apiUrl)
       .then((response) => response.json())
       .then((data) => {
@@ -36,7 +38,7 @@ export default function CompaniesPage(props) {
     return (
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Typography variant="h6" color="initial">Sync Logs</Typography>
+          <Typography variant="h6" color="initial">My companies</Typography>
         </Grid>
         <Grid item xs={12}>
           <CompaniesLoader

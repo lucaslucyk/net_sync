@@ -5,6 +5,7 @@ urlpatterns = [
     path('', index),
     path('login', index),
     path('logout', index),
+    path('companies', index),
     path('credentials', index),
     path('syncs', index),
     path('sync-logs', index),

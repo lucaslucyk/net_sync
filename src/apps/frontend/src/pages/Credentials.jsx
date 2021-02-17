@@ -9,26 +9,29 @@ export default function CredentialsPage(props) {
   const CredentialsLoader = DataLoaderComponent(DataGridDisplay);
   const [appState, setAppState] = useState({
     loading: false,
-    credentials: null
+    credentials: null,
+    columns: [
+      { field: 'id', headerName: 'ID', flex: 0.2 },
+      { field: 'company_name', headerName: 'Company', flex: 0.7 },
+      { field: 'app_display', headerName: 'Application', flex: 0.7 },
+      { field: 'comment', headerName: 'Comment', flex: 0.7 },
+    ]
   });
 
   useEffect(() => {
     setAppState({loading: true});
-    const apiUrl = '/api/credentials/list';
+    const apiUrl = '/api/v2.0/credentials';
     fetch(apiUrl)
-      .then((data) => data.json())
-      .then((credentials) => {
-        setAppState({loading: false, credentials: credentials});
+      .then((response) => response.json())
+      .then((data) => {
+        setAppState({
+          loading: false,
+          credentials: data.results,
+          columns: appState.columns
+        });
       })
     }, [setAppState] );
 
-    // datagrid headers
-    const columns = [
-      { field: 'id', headerName: 'ID', width: 70 },
-      { field: 'company', headerName: 'Company', width: 130 },
-      { field: 'application', headerName: 'Application', width: 130 },
-      { field: 'comment', headerName: 'Comment', width: 130 },
-    ];
     return (
       <Grid container spacing={3}>
         <Grid item xs={12}>
@@ -38,7 +41,7 @@ export default function CredentialsPage(props) {
           <CredentialsLoader
             isLoading={appState.loading}
             data={appState.credentials}
-            columns={columns}
+            columns={appState.columns}
           />
         </Grid>
       </Grid>

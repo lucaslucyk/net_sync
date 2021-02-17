@@ -82,6 +82,10 @@ class Credential(models.Model):
     def __str__(self):
         return f'{self.get_application_display()} | {self.comment}'
 
+    @property
+    def parameters(self):
+        return self.credentialparameter_set.all()
+
 class CredentialParameter(models.Model):
 
     credential = models.ForeignKey("Credential", on_delete=models.CASCADE)
@@ -139,7 +143,11 @@ class Sync(models.Model, SyncMethods):
     )
 
     def __str__(self):
-        return self.get_synchronize_display()
+        return '{} from {} to {}'.format(
+            self.get_synchronize_display(),
+            self.origin,
+            self.destiny
+        )
 
     @classmethod
     def get_needs_run(cls):
