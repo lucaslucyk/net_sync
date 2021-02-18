@@ -151,18 +151,18 @@ export default function MyAppBar(props) {
         <AccountCircle style={{ marginRight:'10px' }}/>
         <Typography variant="inherit">My Account</Typography>
       </MenuItem>
-      {
-        props.isAuthenticated ? 
-        <MenuItem onClick={handleMenuClose}>
+      {/* {
+        props.isAuthenticated ?  */}
+        <MenuItem onClick={handleMenuClose} component={Link} to={'/logout'}>
           <ExitToAppIcon style={{ marginRight:'10px' }}/>
           <Typography variant="inherit">Sign Out</Typography>
         </MenuItem>
-        :
-        <MenuItem onClick={handleMenuClose} component={Link} to={'login'}>
+        // :
+        <MenuItem onClick={handleMenuClose} component={Link} to={'/login'}>
           <VpnKeyIcon style={{ marginRight:'10px' }}/>
           <Typography variant="inherit">Sign In</Typography>
         </MenuItem>
-      }
+      // }
       <MenuItem onClick={handleMenuClose} style={{ paddingLeft: '10px' }}>
         <Switch
           checked={state.checkedB}
@@ -258,7 +258,8 @@ export default function MyAppBar(props) {
           </div>
           <div className={classes.grow} />
             <div className={classes.sectionDesktop} justifyContent="flex-end">
-              <IconButton aria-label="show 4 new mails" color="inherit">
+
+              {/* <IconButton aria-label="show 4 new mails" color="inherit">
                 <Badge badgeContent={4} color="secondary">
                   <MailIcon />
                 </Badge>
@@ -267,7 +268,8 @@ export default function MyAppBar(props) {
                 <Badge badgeContent={17} color="secondary">
                   <NotificationsIcon />
                 </Badge>
-              </IconButton>
+              </IconButton> */}
+
               <IconButton
                 edge="end"
                 aria-label="account of current user"

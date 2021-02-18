@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -12,6 +12,8 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import { useHistory } from "react-router-dom";
+import axiosInstance from '../axios';
 
 function Copyright() {
   return (
@@ -48,6 +50,43 @@ const useStyles = makeStyles((theme) => ({
 
 export default function LogIn() {
   const classes = useStyles();
+  
+  // to login 
+  const history = useHistory();
+  const initialFormData = Object.freeze({
+    username: '',
+    password: '',
+  });
+  
+  const [formData, updateFormData] = useState(initialFormData);
+
+  const handleChange = (e) => {
+    updateFormData({
+      ...formData,
+      [e.target.name]: e.target.value.trim(),
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    //console.log(formData);
+
+    axiosInstance
+      .post('/auth/login/', {
+        username: formData.username,
+        password: formData.password,
+      })
+      .then((res) => {
+        sessionStorage.setItem('access_token', res.data.access);
+        sessionStorage.setItem('refresh_token', res.data.refresh);
+        axiosInstance.defaults.headers['Authorization'] = 
+          'JWT ' + sessionStorage.getItem('access_token');
+          history.push('/');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -70,6 +109,7 @@ export default function LogIn() {
             name="username"
             autoComplete="username"
             autoFocus
+            onChange={handleChange}
           />
           <TextField
             variant="outlined"
@@ -81,6 +121,7 @@ export default function LogIn() {
             type="password"
             id="password"
             autoComplete="current-password"
+            onChange={handleChange}
           />
           <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
@@ -92,6 +133,7 @@ export default function LogIn() {
             variant="contained"
             color="primary"
             className={classes.submit}
+            onClick={handleSubmit}
           >
             Sign In
           </Button>

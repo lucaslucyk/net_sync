@@ -39,7 +39,7 @@ export default function CompaniesPage(props) {
     return (
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Typography variant="h6" color="initial">My syncs</Typography>
+          <Typography variant="h6" color="initial">Syncs</Typography>
         </Grid>
         <Grid item xs={12}>
           <CompaniesLoader

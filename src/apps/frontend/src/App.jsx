@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import BaseContainer from './components/Base/Base';
 import menuItems from './menuItems';
 import LogIn from './pages/LogIn';
+import LogOut from './pages/LogOut';
 import * as actions from './store/actions/auth';
 
 const makeRoute = (menu, level=0) => {
@@ -36,6 +37,10 @@ class App extends Component {
             <Route 
               path='/login'
               component={LogIn}>
+            </Route>
+            <Route 
+              path='/logout'
+              component={LogOut}>
             </Route>
             { makeRoute(menuItems.primary) }
             { makeRoute(menuItems.secondary) }

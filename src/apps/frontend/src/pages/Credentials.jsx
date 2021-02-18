@@ -35,7 +35,7 @@ export default function CredentialsPage(props) {
     return (
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Typography variant="h6" color="initial">My credentials</Typography>
+          <Typography variant="h6" color="initial">Credentials</Typography>
         </Grid>
         <Grid item xs={12}>
           <CredentialsLoader

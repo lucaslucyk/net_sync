@@ -25,18 +25,18 @@ const menuItems = {
     NavIcon: HomeIcon,
     component: HomePage
   },{
-    name: "My Companies",
+    name: "Companies",
     url: "/companies",
     NavIcon: BusinessIcon,
     component: CompaniesPage
   },,{
-    name: "My Credentials",
+    name: "Credentials",
     url: "/credentials",
     NavIcon: VpnKeyIcon,
     component: CredentialsPage
   },
   {
-    name: "My Syncs",
+    name: "Syncs",
     url: "/syncs",
     NavIcon: SyncIcon,
     component: SyncPage
@@ -61,7 +61,7 @@ const menuItems = {
   }],
   secondary: [
     {
-      name: "My Account",
+      name: "Account",
       url: "/profile",
       NavIcon: AccountCircleIcon,
       component: ProfilePage

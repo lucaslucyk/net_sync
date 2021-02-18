@@ -15,15 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from .views import BlackListTokenView as _bltv
 
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
+    TokenObtainPairView as _topv,
+    TokenRefreshView as _trv,
 )
 
 urlpatterns = [
-    path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v2.0/auth/login/', _topv.as_view(), name='token_obtain_pair'),
+    path('api/v2.0/auth/refresh/', _trv.as_view(), name='token_refresh'),
+    path('api/v2.0/auth/logout/', _bltv.as_view(), name='token_blacklist'),
     path('admin/', admin.site.urls),
     path('api/', include('apps.api.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
