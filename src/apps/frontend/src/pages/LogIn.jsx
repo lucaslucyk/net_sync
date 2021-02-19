@@ -77,10 +77,10 @@ export default function LogIn() {
         password: formData.password,
       })
       .then((res) => {
-        sessionStorage.setItem('access_token', res.data.access);
-        sessionStorage.setItem('refresh_token', res.data.refresh);
+        localStorage.setItem('access_token', res.data.access);
+        localStorage.setItem('refresh_token', res.data.refresh);
         axiosInstance.defaults.headers['Authorization'] = 
-          'JWT ' + sessionStorage.getItem('access_token');
+          'JWT ' + localStorage.getItem('access_token');
           history.push('/');
       })
       .catch((err) => {

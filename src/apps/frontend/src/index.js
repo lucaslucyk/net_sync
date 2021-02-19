@@ -17,7 +17,7 @@ const store = createStore(reducer, composeEnhaces(
 
 const app = (
   <Provider store={store}>
-    <App></App>
+      <App></App>
   </Provider>
 )
 

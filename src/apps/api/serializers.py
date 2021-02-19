@@ -6,7 +6,7 @@ from apps.applications import models
 
 
 class CompanyListUrl(serializers.HyperlinkedModelSerializer):
-    #credentials = serializers.HyperlinkedModelSerializer(source='credential_set')
+
     class Meta:
         model = models.Company
         # fields = ('id', 'url', 'company', '')
@@ -14,10 +14,15 @@ class CompanyListUrl(serializers.HyperlinkedModelSerializer):
         fields = [_f.name for _f in models.Company._meta.fields]
         fields.extend(['url', 'credential_set'])
 
+        extra_kwargs = {
+            'credential_set': {'read_only': True}
+        }
+
 
 class CredentialListUrl(serializers.HyperlinkedModelSerializer):
     company_name = serializers.ReadOnlyField(source='company.name')
     app_display = serializers.ReadOnlyField(source='get_application_display')
+    
     class Meta:
         model = models.Credential
         fields = [_f.name for _f in models.Credential._meta.fields]
@@ -29,6 +34,11 @@ class CredentialListUrl(serializers.HyperlinkedModelSerializer):
             'company_name',
             'app_display'
         ])
+        extra_kwargs = {
+            'credentialparameter_set': {'read_only': True},
+            'origin': {'read_only': True},
+            'destiny': {'read_only': True},
+        }
 
 
 class CredentialParameterListUrl(serializers.HyperlinkedModelSerializer):
@@ -50,9 +60,16 @@ class SyncListUrl(serializers.HyperlinkedModelSerializer):
         model = models.Sync
         fields = [_f.name for _f in models.Sync._meta.fields]
         fields.extend([
-            'url', 'syncparameter_set', 'origin_display', 'destiny_display',
-            'status_display', 'synchronize_display'
+            'url',
+            'syncparameter_set',
+            'origin_display',
+            'destiny_display',
+            'status_display',
+            'synchronize_display'
         ])
+        extra_kwargs = {
+            'syncparameter_set': {'read_only': True}
+        }
 
 
 class SyncParameterListUrl(serializers.HyperlinkedModelSerializer):

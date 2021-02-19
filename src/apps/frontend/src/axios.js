@@ -9,8 +9,8 @@ const axiosInstance = axios.create({
   baseURL: baseURL,
   timmeout: 5000,
   headers: {
-    Authorization: sessionStorage.getItem('access_token')
-      ? 'JWT ' + sessionStorage.getItem('access_token')
+    Authorization: localStorage.getItem('access_token')
+      ? 'JWT ' + localStorage.getItem('access_token')
       : null,
       'Content-Type': 'application/json',
       accept: 'application/json', 
@@ -37,6 +37,7 @@ axiosInstance.interceptors.response.use(
       error.response.status === 401 &&
       originalRequest.url === refreshURL
     ) {
+      //console.log(originalRequest.url, refreshURL);
       window.location.href = '/login';
       return Promise.reject(error);
     }
@@ -46,7 +47,7 @@ axiosInstance.interceptors.response.use(
       error.response.status === 401 &&
       error.response.statusText === 'Unauthorized'
     ){
-      const refreshToken = sessionStorage.getItem('refresh_token');
+      const refreshToken = localStorage.getItem('refresh_token');
 
       if (refreshToken){
         const tokenParts = JSON.parse(atob(refreshToken.split('.')[1]));
@@ -59,8 +60,8 @@ axiosInstance.interceptors.response.use(
           return axiosInstance
           .post(refreshURL, {refresh: refreshToken})
           .then((response) => {
-            sessionStorage.setItem('access_token', response.data.access);
-            sessionStorage.setItem('refresh_token', response.data.refresh);
+            localStorage.setItem('access_token', response.data.access);
+            localStorage.setItem('refresh_token', response.data.refresh);
 
             axiosInstance.defaults.headers['Authorization'] = 
               'JWT ' + response.data.access;
@@ -80,6 +81,14 @@ axiosInstance.interceptors.response.use(
         console.log('Refresh token not available.');
         window.location.href = '/login';
       }
+    }
+    //not logued 
+    if (
+      error.response.data.detail === "Authentication credentials were not provided." &&
+      error.response.status === 401
+    ) {
+      console.log('Session not started');
+      window.location.href = '/login';
     }
 
     // specific error handling done elsewhere

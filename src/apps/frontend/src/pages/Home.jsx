@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-
+import isAuthenticated from '../utils/sessionState';
 
 export default class HomePage extends Component {
   constructor(props){
@@ -7,6 +7,6 @@ export default class HomePage extends Component {
   }
 
   render() {
-    return <p>This is the Home Page.</p>
+    return <p>Home page: {isAuthenticated().toString()}</p>
   }
 }

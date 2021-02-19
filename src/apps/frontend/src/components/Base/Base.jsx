@@ -4,6 +4,7 @@ import { CssBaseline } from '@material-ui/core';
 import NavBar from '../NavBar/NavBar';
 import MyAppBar from '../AppBar/MyAppBar';
 
+
 const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
@@ -128,7 +129,8 @@ const useStyles = makeStyles((theme) => ({
 export default function BaseContainer(props) {
   
   const classes = useStyles();
-  const [open, setOpen] = React.useState(null);
+  //console.log(window.innerWidth);
+  const [open, setOpen] = React.useState(window.innerWidth < 960 ? null : true);
 
   const handleDrawerOpen = () => {
     setOpen(true);

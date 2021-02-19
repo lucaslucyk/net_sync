@@ -7,10 +7,10 @@ export default function LogOut() {
 
   useEffect(() => {
     const response = axiosInstance.post('/auth/logout/', {
-      refresh_token: sessionStorage.getItem('refresh_token'),
+      refresh_token: localStorage.getItem('refresh_token'),
     });
-    sessionStorage.removeItem('access_token');
-    sessionStorage.removeItem('refresh_token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     axiosInstance.defaults.headers['Authorization'] = null;
     history.push('/login');
   });

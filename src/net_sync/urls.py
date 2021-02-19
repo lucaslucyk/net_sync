@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.documentation import include_docs_urls
 from .views import BlackListTokenView as _bltv
 
 from rest_framework_simplejwt.views import (
@@ -29,5 +30,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('apps.api.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('', include('apps.frontend.urls'))
+    path('', include('apps.frontend.urls')),
+    path('docs/', include_docs_urls(title='NetSyncAPI')),
 ]

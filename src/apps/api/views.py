@@ -3,25 +3,57 @@
 #from django.contrib.auth.models import User
 #from django.http import Http404
 from django.db.models import Q
+#from django.http import HttpResponse
 
 # rest_framework
 # from rest_framework import generics, status
 # from rest_framework.views import APIView
 # from rest_framework.response import Response
 # from rest_framework.fields import CurrentUserDefault
+from rest_framework import status
 from rest_framework import viewsets
 from rest_framework import permissions
-
+from rest_framework.renderers import HTMLFormRenderer
+from rest_framework.decorators import action
+from rest_framework.response import Response
 # own
 from apps.applications import models
 from . import serializers
 
 class BaseViewSet:
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get', 'head', 'options', 'post', 'put']
+    #http_method_names = ['get', 'head', 'options', 'post', 'put', 'delete']
+
+    @action(detail=False)
+    def blank_form(self, request, *args, **kwargs):
+        serializer = self.get_serializer()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CompanyViewSet(BaseViewSet, viewsets.ModelViewSet):
+    """
+    list:
+    ViewSet to list user Companies.
+
+    create:
+    ViewSet to create a new Company.
+
+    blank_form:
+    ViewSet to get a blank form for a new Company.
+
+    read:
+    ViewSet to get a Company detail.
+
+    update:
+    ViewSet to update a complete Company with form data.
+
+    partial_update:
+    ViewSet to partial update Company with form data.
+
+    delete:
+    ViewSet to delete a Company.
+    """
+    
     queryset = models.Company.objects.all().order_by('id')
     serializer_class = serializers.CompanyListUrl
     

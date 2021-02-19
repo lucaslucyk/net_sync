@@ -9,7 +9,8 @@ import MoreIcon from '@material-ui/icons/MoreVert';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import VpnKeyIcon from '@material-ui/icons/VpnKey';
 import { fade, makeStyles, useTheme } from '@material-ui/core/styles';
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
+import SearchBar from "material-ui-search-bar";
 import {
   AppBar,
   Toolbar,
@@ -22,6 +23,7 @@ import {
   Badge,
   Switch
 } from '@material-ui/core';
+import isAuthenticated from '../../utils/sessionState';
 
 const drawerWidth = 240;
 
@@ -46,6 +48,28 @@ const useStyles = makeStyles((theme) => ({
   },
   hide: {
     display: 'none',
+  },
+  searchBar: {
+    maxHeight: '2.6em',
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: fade(theme.palette.common.white, 0.15),
+    '&:hover': {
+      backgroundColor: fade(theme.palette.common.white, 0.25),
+    },
+    marginRight: theme.spacing(2),
+    marginLeft: 0,
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      marginLeft: theme.spacing(3),
+      width: 'auto',
+    },
+    marginLeft: `calc(1em + ${theme.spacing(3)}px)`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '25em',
+    },
   },
   search: {
     position: 'relative',
@@ -103,6 +127,7 @@ const useStyles = makeStyles((theme) => ({
 export default function MyAppBar(props) {
   const classes = useStyles();
   // const theme = useTheme();
+  let history = useHistory();
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -114,6 +139,18 @@ export default function MyAppBar(props) {
     checkedA: true,
     checkedB: true,
   });
+
+  const [data, setData] = React.useState({search: ''});
+  const goSearch = (e) => {
+    
+    // both have data
+    // console.log(e, data.search);
+    // history.push({
+    //   pathname: '/search/',
+    //   search: '?search=' + data.search,
+    // });
+    // window.location.reload();
+  };
 
   const handleChange = (event) => {
     setState({ ...state, [event.target.name]: event.target.checked });
@@ -151,18 +188,18 @@ export default function MyAppBar(props) {
         <AccountCircle style={{ marginRight:'10px' }}/>
         <Typography variant="inherit">My Account</Typography>
       </MenuItem>
-      {/* {
-        props.isAuthenticated ?  */}
+      {
+        isAuthenticated() ? 
         <MenuItem onClick={handleMenuClose} component={Link} to={'/logout'}>
           <ExitToAppIcon style={{ marginRight:'10px' }}/>
           <Typography variant="inherit">Sign Out</Typography>
         </MenuItem>
-        {/* : */}
+        :
         <MenuItem onClick={handleMenuClose} component={Link} to={'/login'}>
           <VpnKeyIcon style={{ marginRight:'10px' }}/>
           <Typography variant="inherit">Sign In</Typography>
         </MenuItem>
-      {/* } */}
+      }
       <MenuItem onClick={handleMenuClose} style={{ paddingLeft: '10px' }}>
         <Switch
           checked={state.checkedB}
@@ -243,7 +280,7 @@ export default function MyAppBar(props) {
             NetSync App
           </Typography>
           <div className={classes.grow} />
-          <div className={classes.search}>
+          {/* <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />
             </div>
@@ -254,8 +291,17 @@ export default function MyAppBar(props) {
                 input: classes.inputInput,
               }}
               inputProps={{ 'aria-label': 'search' }}
+              //onChange={searchChange}
+              on
             />
-          </div>
+          </div> */}
+          <SearchBar
+            className={classes.searchBar}
+            placeholder='Search...'
+            value={data.search}
+            onChange={(newValue) => setData({ search: newValue })}
+            onRequestSearch={() => goSearch(data.search)}
+          />
           <div className={classes.grow} />
             <div className={classes.sectionDesktop} justifyContent="flex-end">
 
