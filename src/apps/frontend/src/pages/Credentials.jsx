@@ -3,6 +3,7 @@ import DataGridDisplay from '../components/DataGridDisplay/DataGridDisplay';
 import DataLoaderComponent from '../components/DataLoader/DataLoader';
 import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid';
+import axiosInstance from '../axios';
 
 
 export default function CredentialsPage(props) {
@@ -20,16 +21,19 @@ export default function CredentialsPage(props) {
 
   useEffect(() => {
     setAppState({loading: true});
-    const apiUrl = '/api/v2.0/credentials';
-    fetch(apiUrl)
-      .then((response) => response.json())
-      .then((data) => {
+    axiosInstance.get('credentials/')
+      .then((res) => {
         setAppState({
           loading: false,
-          credentials: data.results,
+          credentials: res.data.results,
           columns: appState.columns
         });
       })
+      .catch((err) => {
+        setAppState({
+          loading: false,
+        });
+      });
     }, [setAppState] );
 
     return (

@@ -157,12 +157,12 @@ export default function MyAppBar(props) {
           <ExitToAppIcon style={{ marginRight:'10px' }}/>
           <Typography variant="inherit">Sign Out</Typography>
         </MenuItem>
-        // :
+        {/* : */}
         <MenuItem onClick={handleMenuClose} component={Link} to={'/login'}>
           <VpnKeyIcon style={{ marginRight:'10px' }}/>
           <Typography variant="inherit">Sign In</Typography>
         </MenuItem>
-      // }
+      {/* } */}
       <MenuItem onClick={handleMenuClose} style={{ paddingLeft: '10px' }}>
         <Switch
           checked={state.checkedB}

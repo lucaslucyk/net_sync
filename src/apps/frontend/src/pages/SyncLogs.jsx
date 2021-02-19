@@ -3,6 +3,7 @@ import DataGridDisplay from '../components/DataGridDisplay/DataGridDisplay';
 import DataLoaderComponent from '../components/DataLoader/DataLoader';
 import Typography from '@material-ui/core/Typography'
 import Grid from '@material-ui/core/Grid';
+import axiosInstance from '../axios';
 
 
 export default function CompaniesPage(props) {
@@ -21,16 +22,19 @@ export default function CompaniesPage(props) {
 
   useEffect(() => {
     setAppState({loading: true});
-    const apiUrl = '/api/v2.0/sync-history';
-    fetch(apiUrl)
-      .then((response) => response.json())
-      .then((data) => {
+    axiosInstance.get('sync-history/')
+      .then((res) => {
         setAppState({
           loading: false,
-          results: data.results,
+          results: res.data.results,
           columns: appState.columns
         });
       })
+      .catch((err) => {
+        setAppState({
+          loading: false,
+        });
+      });
     }, [setAppState] );
 
     return (
