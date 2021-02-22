@@ -280,21 +280,6 @@ export default function MyAppBar(props) {
             NetSync App
           </Typography>
           <div className={classes.grow} />
-          {/* <div className={classes.search}>
-            <div className={classes.searchIcon}>
-              <SearchIcon />
-            </div>
-            <InputBase
-              placeholder="Search…"
-              classes={{
-                root: classes.inputRoot,
-                input: classes.inputInput,
-              }}
-              inputProps={{ 'aria-label': 'search' }}
-              //onChange={searchChange}
-              on
-            />
-          </div> */}
           <SearchBar
             className={classes.searchBar}
             placeholder='Search...'
