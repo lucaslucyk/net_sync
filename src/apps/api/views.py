@@ -33,7 +33,7 @@ class BaseViewSet:
 class CompanyViewSet(BaseViewSet, viewsets.ModelViewSet):
     """
     list:
-    ViewSet to list user Companies.
+    ViewSet to list Companies of current user.
 
     create:
     ViewSet to create a new Company.
