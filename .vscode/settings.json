@@ -1,4 +1,5 @@
 {
   "python.linting.enabled": false,
+  "python.pythonPath": "C:\\Users\\LucasLucyk\\AppData\\Local\\Programs\\Python\\Python38\\python.exe",
   //"python.pythonPath": "D:\\Documentos\\Programming\\Python\\ambientes\\net_sync\\Scripts\\python"
 }

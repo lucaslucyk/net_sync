@@ -13,7 +13,9 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 ### own ###
-from utils.api import SyncMethods
+from utils import connectors
+#from utils.api import SyncMethods
+from utils.processors import rgetattr
 
 ### third ###
 import croniter
@@ -49,7 +51,7 @@ class CredentialParameter(models.Model):
         return str(self.credential)
 
 
-class Sync(models.Model, SyncMethods):
+class Sync(models.Model):
 
     synchronize = models.CharField(
         max_length=20,
@@ -198,6 +200,117 @@ class Sync(models.Model, SyncMethods):
     is_valid.short_description = "Is valid"
     is_valid.boolean = True
 
+    def run_v2(self):
+
+        self.status = '1'
+        self.save()
+
+        # history create
+        logg = SyncHistory.objects.create(
+            sync=self,
+            ok=True
+        )
+        try:
+            # get configs
+            from_app = self.origin.application
+            to_app = self.destiny.application
+
+            # config from setting
+            sync_cfg = settings.CONNECTORS.get(self.synchronize)
+            
+            # get data
+            from_ = sync_cfg.get('from').get(from_app)
+            from_class_name = from_.get('class_')
+            from_method_name = from_.get('method')
+            
+            # send data
+            to_ = sync_cfg.get('to').get(to_app)
+            to_class_name = to_.get('class_')
+            to_method_name = to_.get('method')
+
+            # classes
+            from_class = rgetattr(connectors, from_class_name)
+            to_class = rgetattr(connectors, to_class_name)
+            
+            # get last run in datetime object
+            last_run = dt.datetime.strptime(
+                '2000-01-01 00:00:00',
+                "%Y-%m-%d %H:%M:%S"
+            )
+            if self.get_previous_run():
+                last_run = self.get_previous_run()
+
+            # create clients
+            from_client = from_class(
+                source=self.origin,
+                last_run=last_run
+            )
+            to_client = to_class(
+                source=self.destiny,
+                last_run=last_run
+            )
+
+            # get methods
+            from_method = rgetattr(from_client, from_method_name)
+            to_method = rgetattr(to_client, to_method_name)
+
+            # mapping req parameters with application values
+            from_params = self.syncparameter_set.filter(use_in='origin')
+            to_params = self.syncparameter_set.filter(use_in='destiny')
+
+            # parse elements
+            parsed_from_params = {}
+            parsed_to_params = {}
+
+            # process origin params
+            for p in from_params:
+                if p._type == 'json':
+                    parsed_from_params[p.key] = json.loads(p.value)
+                else:
+                    parsed_from_params[p.key] = eval(p.value)
+
+            # process destiny params
+            for p in to_params:
+                if p._type == 'json':
+                    parsed_to_params[p.key] = json.loads(p.value)
+                else:
+                    parsed_to_params[p.key] = eval(p.value)
+
+            # execute from method
+            from_response = from_method(**parsed_from_params)
+            #print(from_response)
+
+            # execute custom processes
+            for process in self.syncprocess_set.all():
+                # recursive call
+                from_response = process.execute(self, from_response)
+
+            # execute to method passing connector response
+            to_response = to_method(from_response, **parsed_to_params)
+
+            # log update
+            logg.end_time = now()
+            logg.save()
+
+            # update status
+            self.status = '0'
+            self.save()
+
+            return True
+
+        except Exception as error:
+            
+            # log change
+            logg.end_time = now()
+            logg.ok = False
+            logg.message = str(error)
+            logg.save()
+
+            # update status
+            self.status = '0'
+            self.save()
+
+            return False
 
     def run(self):
         """

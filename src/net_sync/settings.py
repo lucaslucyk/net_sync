@@ -149,7 +149,8 @@ LOGOUT_REDIRECT_URL = '/accounts/logout/?next=/'
 
 REGISTERED_APPS = (
     ('nettime6', 'NetTime 6'),
-    ('manager', 'SPEC Manager'),
+    ('manager', 'SPEC Manager DB'),
+    ('manager_api', 'SPEC Manager API'),
     ('visma', 'Visma RH'),
     ('exactian', 'Exactian')
 )
@@ -165,6 +166,85 @@ REGISTERED_PARAMS = (
     ('database', 'Database'),
     ('controller', 'Controller'),
 )
+
+CONNECTORS = {
+    'clockings': {
+        'from': {
+            'manager_api': {
+                'class_': 'specmanagerapi.Client',  # is connector
+                'class_params': ('source', 'last_run'),
+                'method': 'get_clockings',
+                'method_params': ('_type', 'fields')
+            }
+        }
+    },
+    'employees': {
+        'from': {
+            'nettime6': {
+                'class_': 'nettime6.Client',
+                'method': 'get_employees',
+            },
+            'manager': {
+                'class_': 'specmanagerdb.Client',
+                'method': 'get_employees',
+            },
+            'visma': {
+                'class_': 'visma.Client',
+                'method': 'get_employees',
+            },
+            'exactian': {
+                'class_': 'exactian.Client',
+                'method': 'get_employees',
+            }
+        },
+        'to': {
+            'nettime6': {
+                'class_': 'nettime6.Client',
+                'method': 'post_employees',
+            },
+            'manager': {
+                'class_': 'specmanagerdb.Client',
+                'method': 'post_employees',
+            },
+            'manager_api': {
+                'class_': 'specmanagerapi.Client',
+                'method': 'post_employees'
+            }
+        }
+    },
+    'structure': {
+        'from': {
+            'manager': {
+                'class_': 'specmanagerdb.Client',
+                'method': 'get_employees',
+            }
+        },
+        'to': {
+            'nettime6': {
+                'class_': 'nettime6.Client',
+                'method': 'post_departments',
+            }
+        }
+    },
+    'results': {
+        'from': {
+            'nettime6': {
+                'class_': 'nettime6.Client',
+                'method': 'get_result_syncs',
+            },
+            'manager': {
+                'class_': 'specmanagerdb.Client',
+                'method': 'get_results',
+            }
+        },
+        'to': {
+            'visma': {
+                'class_': 'visma.Client',
+                'method': 'post_payments',
+            }
+        }
+    }
+}
 
 CONFIG_FUNCS = {
     'employees': {
@@ -217,15 +297,19 @@ CONFIG_FUNCS = {
                 'method': 'post_visma_payments',
             }
         }
+    },
+    'clockings': {
+
     }
 }
 
 # format funcs for sync choices
-AVAILABLE_FUNCS = [(k, k.capitalize()) for k in CONFIG_FUNCS.keys()]
+AVAILABLE_FUNCS = [(k, k.capitalize()) for k in CONNECTORS.keys()]
 
 TASK_STATUS = (
-    ('0', 'Pending'),
-    ('1', 'Running'),
+    ('0', 'Pending'),   # normal state
+    ('1', 'Running'),   # executing
+    ('2', 'Queued'),    # manual/forced pending state
 )
 
 PARAM_TYPES = (

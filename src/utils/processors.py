@@ -200,6 +200,25 @@ def time_format(obj: str, fmt: str, **kwargs) -> str:
     return py_dt.strftime(fmt)
 
 
+def to_datetime(obj: str, fmt: str, **kwargs) -> dt.datetime:
+    """
+    Converts a string to a datetime using format indicated by the 
+    fmt* parameter.
+    
+    @@ Parameters
+    @fmt (str):
+        Compatible string with datetime.strftime behavior.
+        More info in:
+        https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+
+    @@ Returns
+    @dt.datetime: Datetime from str with fmt format.
+    """
+
+    # format and return
+    return dt.datetime.strptime(obj, fmt)
+
+
 def replace(obj: str, old: str, new: str):
     """ Replace the old str with new str in obj. """
 
