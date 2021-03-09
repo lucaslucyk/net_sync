@@ -64,12 +64,14 @@ class Sync(models.Model):
     origin = models.ForeignKey(
         "Credential",
         on_delete=models.CASCADE,
-        related_name='origin'
+        related_name='origin',
+        verbose_name='Source'
     )
     destiny = models.ForeignKey(
         "Credential", 
         on_delete=models.CASCADE,
-        related_name='destiny'
+        related_name='destiny',
+        verbose_name='Target'
     )
     cron_expression = models.CharField(
         null=True,
@@ -165,6 +167,10 @@ class Sync(models.Model):
     
     def needs_run(self):
         """ Determines if it needs to run depending on the cron expression. """
+        
+        # check if is queued
+        if self.status == '2':
+            return True
 
         next_run = self.get_next_run()
         if not next_run:
@@ -184,10 +190,10 @@ class Sync(models.Model):
         """
 
         # available origins of sync type
-        froms = settings.CONFIG_FUNCS.get(self.synchronize).get('from').keys()
+        froms = settings.CONNECTORS.get(self.synchronize).get('from', {}).keys()
 
         # available destinies of sync type
-        towards = settings.CONFIG_FUNCS.get(self.synchronize).get('to').keys()
+        towards = settings.CONNECTORS.get(self.synchronize).get('to', {}).keys()
             
         if self.origin.application not in froms:
             return False
@@ -200,7 +206,11 @@ class Sync(models.Model):
     is_valid.short_description = "Is valid"
     is_valid.boolean = True
 
-    def run_v2(self):
+    def run(self):
+        """
+        Execute the synchronization obtaining the source and destination 
+        methods and parameters.
+        """
 
         self.status = '1'
         self.save()
@@ -312,95 +322,6 @@ class Sync(models.Model):
 
             return False
 
-    def run(self):
-        """
-        Execute the synchronization obtaining the source and destination 
-        methods and parameters.
-        """
-        # update status
-        self.status = '1'
-        self.save()
-
-        # history create
-        logg = SyncHistory.objects.create(
-            sync=self,
-            ok=True
-        )
-
-        try:
-            # get configs
-            origin_app = self.origin.application
-            destiny_app = self.destiny.application
-
-            # config from setting
-            sync_cfg = settings.CONFIG_FUNCS.get(self.synchronize)
-
-            # get methods
-            origin_method = sync_cfg.get('from').get(origin_app).get('method')
-            destiny_method = sync_cfg.get('to').get(destiny_app).get('method')
-
-            # str to method
-            get_method = getattr(self, origin_method)
-            post_method = getattr(self, destiny_method)
-
-            # mapping req parameters with application values
-            app_orig_prms = self.syncparameter_set.filter(use_in='origin')
-            app_dest_params = self.syncparameter_set.filter(use_in='destiny')
-
-            # parse elements
-            parse_origin_params = {}
-            parse_dest_params = {}
-
-            # process origin params
-            for p in app_orig_prms:
-                if p._type == 'json':
-                    parse_origin_params[p.key] = json.loads(p.value)
-                else:
-                    parse_origin_params[p.key] = eval(p.value)
-
-            # process destiny params
-            for p in app_dest_params:
-                if p._type == 'json':
-                    parse_dest_params[p.key] = json.loads(p.value)
-                else:
-                    parse_dest_params[p.key] = eval(p.value)
-
-            # executing methods
-            origin_response = get_method(**parse_origin_params)
-            
-            # custom processes
-            for process in self.syncprocess_set.all():
-                # recursive call
-                origin_response = process.execute(self, origin_response)
-                #exec(process.expression)
-
-            # send to destiny method
-            destiny_response = post_method(origin_response, **parse_dest_params)
-
-            # log update
-            logg.end_time = now()
-            logg.save()
-
-            # update status
-            self.status = '0'
-            self.save()
-
-            return True
-        
-        except Exception as error:
-            
-            # log change
-            logg.end_time = now()
-            logg.ok = False
-            logg.message = str(error)
-            logg.save()
-
-            # update status
-            self.status = '0'
-            self.save()
-
-            return False
-
 
 class SyncParameter(models.Model):
 
@@ -408,7 +329,7 @@ class SyncParameter(models.Model):
 
     use_in = models.CharField(
         max_length=20,
-        choices=(('origin', 'Origin'), ('destiny', 'Destiny')),
+        choices=(('origin', 'Source'), ('destiny', 'Target')),
         blank=False,
         null=False,
         default='origin'
@@ -443,12 +364,12 @@ class SyncHistory(models.Model):
 
     def get_origin(self):
         return self.sync.origin
-    get_origin.short_description = "Origin"
+    get_origin.short_description = "Source"
     get_origin.admin_order_field = "sync__origin"
 
     def get_destiny(self):
         return self.sync.destiny
-    get_destiny.short_description = "Destiny"
+    get_destiny.short_description = "Target"
     get_destiny.admin_order_field = "sync__destiny"
 
 

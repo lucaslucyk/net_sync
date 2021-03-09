@@ -5,8 +5,8 @@ from django.contrib import messages
 from django.utils.translation import gettext as _
 
 admin.site.site_header = 'NetSync'
-admin.site.site_title = _("Sync for Grupo SPEC apps")
-admin.site.index_title = _("NetSync | Crafted by Lucas Lucyk")
+admin.site.site_title = _("Sync SPEC, SA & Third Apps")
+admin.site.index_title = _("NetSync | SPEC, SA")
 class CredParametersInLine(admin.StackedInline):
     model = models.CredentialParameter
     extra = 0
@@ -48,8 +48,8 @@ class SyncsAdmin(admin.ModelAdmin):
         'status', 'get_last_run', 'get_next_run', 'needs_run'
     )
     list_display = (
-        'synchronize', 'origin', 'destiny', 'active', 'status',
-        'get_last_run', 'get_next_run', 'needs_run'#, 'is_valid'
+        'synchronize', 'origin', 'destiny', 'is_valid', 'active', 'status',
+        'get_last_run', 'get_next_run', 'needs_run'
     )
     readonly_fields = ['get_last_run', 'get_next_run', 'needs_run', 'status']
     autocomplete_fields = ['origin', 'destiny']
@@ -58,7 +58,18 @@ class SyncsAdmin(admin.ModelAdmin):
         'synchronize', 'origin__application', 'destiny__application', 'status'
     ]
 
-    actions = ['execute', 'execute_v2']
+    actions = ['execute', 'queue']
+
+    def queue(self, request, queryset):
+
+        # queue all syncs in queryset
+        queryset.update(status='2')  # queued
+        
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            _('Tasks were queued.')
+        )
 
     def execute(self, request, queryset):
         correct = True
@@ -66,27 +77,6 @@ class SyncsAdmin(admin.ModelAdmin):
         for sync in queryset:
             # execute and eval result
             if not sync.run():
-               correct = False 
-                
-        if correct:
-            messages.add_message(
-                request,
-                messages.SUCCESS,
-                _('Tasks were completed.')
-            )
-        else:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                _('One or more tasks could not be executed.')
-        )
-
-    def execute_v2(self, request, queryset):
-        correct = True
-
-        for sync in queryset:
-            # execute and eval result
-            if not sync.run_v2():
                correct = False
 
         if correct:
@@ -103,7 +93,7 @@ class SyncsAdmin(admin.ModelAdmin):
             )
 
     execute.short_description = _("Execute")
-    execute_v2.short_description = _("Execute v2")
+    queue.short_description = _("Queue")
 
 
 @admin.register(models.SyncHistory)

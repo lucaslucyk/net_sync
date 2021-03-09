@@ -152,7 +152,8 @@ REGISTERED_APPS = (
     ('manager', 'SPEC Manager DB'),
     ('manager_api', 'SPEC Manager API'),
     ('visma', 'Visma RH'),
-    ('exactian', 'Exactian')
+    ('exactian', 'Exactian'),
+    ('certronic', 'Certronic')
 )
 
 REGISTERED_PARAMS = (
@@ -165,6 +166,7 @@ REGISTERED_PARAMS = (
     ('port', 'Port'),
     ('database', 'Database'),
     ('controller', 'Controller'),
+    ('apikey', 'API-Key'),
 )
 
 CONNECTORS = {
@@ -254,63 +256,6 @@ CONNECTORS = {
     }
 }
 
-CONFIG_FUNCS = {
-    'employees': {
-        'from': {
-            'nettime6': {
-                'method': 'get_nt6_employees',
-            },
-            'manager': {
-                'method': 'get_smdb_employees',
-            },
-            'visma': {
-                'method': 'get_visma_employees',
-            },
-            'exactian': {
-                'method': 'get_exactian_employees',
-            }
-        },
-        'to': {
-            'nettime6': {
-                'method': 'post_nt6_employees',
-            },
-            'manager': {
-                'method': 'post_smdb_employees',
-            }
-        }
-    },
-    'structure': {
-        'from': {
-            'manager': {
-                'method': 'get_smdb_employees',
-            }
-        },
-        'to': {
-            'nettime6': {
-                'method': 'post_nt6_departments',
-            }
-        }
-    },
-    'results': {
-        'from': {
-            'nettime6': {
-                'method': 'get_nt6_result_syncs',
-            },
-            'manager': {
-                'method': 'get_smdb_results',
-            }
-        },
-        'to': {
-            'visma': {
-                'method': 'post_visma_payments',
-            }
-        }
-    },
-    'clockings': {
-
-    }
-}
-
 # format funcs for sync choices
 AVAILABLE_FUNCS = [(k, k.capitalize()) for k in CONNECTORS.keys()]
 
@@ -321,6 +266,6 @@ TASK_STATUS = (
 )
 
 PARAM_TYPES = (
-    ('python', 'Python'),
+    ('python', 'Default'),
     ('json', 'JSON'),
 )
