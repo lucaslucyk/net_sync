@@ -172,9 +172,13 @@ CONNECTORS = {
         'from': {
             'manager_api': {
                 'class_': 'specmanagerapi.Client',  # is connector
-                'class_params': ('source', 'last_run'),
                 'method': 'get_clockings',
-                'method_params': ('_type', 'fields')
+            }
+        },
+        'to': {
+            'certronic': {
+                'class_': 'certronic.Client',
+                'method': 'post_clockings',
             }
         }
     },
@@ -195,7 +199,11 @@ CONNECTORS = {
             'exactian': {
                 'class_': 'exactian.Client',
                 'method': 'get_employees',
-            }
+            },
+            'certronic': {
+                'class_': 'certronic.Client',
+                'method': 'get_employees',
+            },
         },
         'to': {
             'nettime6': {

@@ -1,2 +1,8 @@
-from utils.connectors import exactian, nettime6, specmanagerapi, \
-    specmanagerdb, visma
+from utils.connectors import (
+    certronic,
+    exactian,
+    nettime6,
+    specmanagerapi,
+    specmanagerdb,
+    visma
+)
