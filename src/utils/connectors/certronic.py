@@ -132,17 +132,8 @@ class Client:
         with self.open_connection() as client:
 
             # send data to module
-            result = client.post_clockings(
-                clockings=clockings,
-                **kwargs
-            )
+            result = client.post_clockings(clockings=clockings, **kwargs)
 
         # return true for general propose
         return result
-
-
-
-
-
-
 

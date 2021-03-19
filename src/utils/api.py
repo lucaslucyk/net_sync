@@ -112,8 +112,8 @@ class FieldDefinition:
             parsed_js = json.loads(parsed_js)
 
         return cls(
-            out_name=parsed_js.get('destiny'),
-            in_name=parsed_js.get('origin'),
+            out_name=parsed_js.get('out', parsed_js.get('destiny')),
+            in_name=parsed_js.get('in', parsed_js.get('origin')),
             steps=parsed_js.get('steps', []),
             default=parsed_js.get('default', None)
         )

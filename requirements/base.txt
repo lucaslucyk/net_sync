@@ -1,0 +1,9 @@
+django<3.0.0
+spec-utils==0.11.1
+pandas
+django-extensions
+croniter
+pyodbc
+sqlalchemy
+python-dateutil
+Unidecode
