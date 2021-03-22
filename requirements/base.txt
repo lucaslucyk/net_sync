@@ -1,5 +1,5 @@
 django<3.0.0
-spec-utils==0.11.2
+spec-utils==0.11.3
 pandas
 django-extensions
 croniter

@@ -82,7 +82,7 @@ class Client:
             )
             # get total pages
             _count = ct_response.get('count', 0)
-            _pageSize = ct_response.get('pageSize')
+            _pageSize = int(ct_response.get('pageSize'))
             
             # calculate pages number
             _pages = ceil(_count / _pageSize) if _count else 1
@@ -99,10 +99,14 @@ class Client:
                     )
 
         # apply field def
-        return api.apply_fields_def(
-            structure=ct_response.get('employees', []),
-            fields_def=[api.FieldDefinition.from_json(f) for f in fields]
-        )
+        if fields:
+            return api.apply_fields_def(
+                structure=ct_response.get('employees', []),
+                fields_def=[api.FieldDefinition.from_json(f) for f in fields]
+            )
+
+        # default structure if not fields recived
+        return ct_response.get('employees', [])
 
     def post_clockings(self, fields: list, clockings: list, **kwargs):
         """

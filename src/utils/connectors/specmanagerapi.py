@@ -111,7 +111,7 @@ class Client:
             fields_def=[api.FieldDefinition.from_json(f) for f in fields]
         )
 
-    def post_employees(self, fields: list, employees: list, **kwargs):
+    def post_employees(self, employees: list, fields: list = [], **kwargs):
         """
         Send employees to SPEC Manager API module with recived parameters.
 
@@ -130,10 +130,13 @@ class Client:
         """
 
         # updating structure with fields
-        employees = api.apply_fields_def(
-            structure=employees,
-            fields_def=[api.FieldDefinition.from_json(f) for f in fields]
-        )
+        if fields:
+            employees = api.apply_fields_def(
+                structure=employees,
+                fields_def=[api.FieldDefinition.from_json(f) for f in fields]
+            )
+
+        # print(employees)
 
         # open api connection with auto-disconnect
         with self.open_connection() as client:
@@ -146,10 +149,4 @@ class Client:
 
         # return true for general propose
         return result
-
-
-
-
-
-
 

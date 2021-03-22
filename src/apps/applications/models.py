@@ -288,7 +288,7 @@ class Sync(models.Model):
 
             # execute from method
             from_response = from_method(**parsed_from_params)
-            #print(from_response)
+            # print(from_response)
 
             # execute custom processes
             for process in self.syncprocess_set.all():
