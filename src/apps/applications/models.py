@@ -11,6 +11,7 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
+from django.utils import timezone
 
 ### own ###
 from utils import connectors
@@ -19,6 +20,7 @@ from utils.processors import rgetattr
 
 ### third ###
 import croniter
+
 
 class Credential(models.Model):
 
@@ -248,7 +250,11 @@ class Sync(models.Model):
                 "%Y-%m-%d %H:%M:%S"
             )
             if self.get_previous_run():
-                last_run = self.get_previous_run()
+                # offset calculate
+                tz = timezone.get_current_timezone()
+                pr = self.get_previous_run()
+
+                last_run = pr + tz.utcoffset(dt.datetime.now())
 
             # create clients
             from_client = from_class(

@@ -68,6 +68,7 @@ class Client:
 
         # get last run and current datetime
         date_start = self.last_run
+        # print(date_start)
         
         # with recived values
         if _from:
@@ -80,23 +81,26 @@ class Client:
                 updatedFrom=date_start,
                 **kwargs
             )
-            # get total pages
-            _count = ct_response.get('count', 0)
-            _pageSize = int(ct_response.get('pageSize'))
             
-            # calculate pages number
-            _pages = ceil(_count / _pageSize) if _count else 1
+            # prevent empty responses
+            if ct_response:
+                # get total pages
+                _count = ct_response.get('count', 0)
+                _pageSize = int(ct_response.get('pageSize', '1'))
+                
+                # calculate pages number
+                _pages = ceil(_count / _pageSize) if _count else 1
 
-            # aletrnative
-            if all_pages and _pages > 1:
-                for i in range(2, _pages +1):
-                    ct_response["employees"].extend(
-                        client.get_employees(
-                            updatedFrom=date_start,
-                            page=i,
-                            **kwargs
-                        ).get('employees')
-                    )
+                # aletrnative
+                if all_pages and _pages > 1:
+                    for i in range(2, _pages +1):
+                        ct_response["employees"].extend(
+                            client.get_employees(
+                                updatedFrom=date_start,
+                                page=i,
+                                **kwargs
+                            ).get('employees')
+                        )
 
         # apply field def
         if fields:
