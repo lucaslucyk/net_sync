@@ -1,1 +1,2 @@
 wfastcgi
+pywin32

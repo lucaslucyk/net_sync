@@ -30,8 +30,7 @@ class Client:
         # connection params
         params = source.credentialparameter_set.all()
         self.url = params.filter(key='host').first().value
-        self.username = params.filter(key='user').first().value
-        self.pwd = params.filter(key='password').first().value
+        self.apikey = params.filter(key='apikey').first().value
 
         self.extra_parameters = kwargs
 
@@ -40,8 +39,7 @@ class Client:
 
         return smapi.Client(
             url=self.url,
-            username=self.username,
-            pwd=self.pwd,
+            apikey=self.apikey,
             **self.extra_parameters,
             **kwargs
         )
