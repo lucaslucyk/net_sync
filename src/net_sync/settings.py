@@ -14,7 +14,7 @@ import os
 import json
 
 # current version
-__version__ = "0.11.0"
+__version__ = "0.11.4"
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
