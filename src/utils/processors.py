@@ -158,6 +158,42 @@ def split(obj: str, sep: str = None, maxsplit: int = -1) -> list:
 
     return obj.split(sep=sep, maxsplit=maxsplit)
 
+def join(obj: list, sep: str = "\n", prefix: str = "", suffix: str = "", \
+        filter_: str = None, **kwargs):
+    """
+    Join multiple values in a single string.
+    List can contains strings or dicts, but must be filtering with 'filter_'
+    parameter with 'rget' compatible expression.
+
+    @@ Parameters
+    @obj (list):
+        List of string or dict to join.
+    @sep (str):
+        String separator.
+    @prefix (str):
+        Optional string to concat before of each string.
+    @suffix (str):
+        Optional string to concat after of each string.
+    @filter_ (str):
+        Optional 'rget' compatible expression to get element from a dict.
+        Use this only of the 'obj' contains dict elements.
+
+    @@ Returns
+    @str: String joined with recived parameters.
+    """
+    
+    # out prepare
+    _out = ""
+
+    if filter_:
+        # filter withb rget
+        _out = sep.join([f'{prefix}{rget(e, filter_)}{suffix}' for e in obj])
+    else:
+        # use list
+        _out = sep.join([f'{prefix}{e}{suffix}' for e in obj])
+
+    # return str
+    return _out
 
 def get_gender_acronym(obj: str) -> str:
     """ Return M of F depending if male or female recived. """
