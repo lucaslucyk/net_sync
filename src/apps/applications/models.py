@@ -4,6 +4,7 @@
 import datetime as dt
 import json
 import importlib
+import traceback
 
 ### django ###
 from django.db import models
@@ -316,7 +317,11 @@ class Sync(models.Model):
             # log change
             logg.end_time = now()
             logg.ok = False
-            logg.message = str(error)
+            logg.message = ''.join(traceback.format_exception(
+                etype=type(error),
+                value=error,
+                tb=error.__traceback__
+            )) if settings.DEBUG and settings.LOG_TRACEBACK else str(error)
             logg.save()
 
             # update status
@@ -375,6 +380,22 @@ class SyncHistory(models.Model):
     get_destiny.short_description = "Target"
     get_destiny.admin_order_field = "sync__destiny"
 
+    @classmethod
+    def delete_olds(cls, force: bool = False):
+        """
+        Delete old objects using settings.LOG_AUTOCLEAN_DAYS offset.
+        """
+
+        # explicit declare to work it
+        if settings.LOG_AUTOCLEAN or force:
+
+            # last date to delete
+            datetime_to = now() - dt.timedelta(
+                days=settings.LOG_AUTOCLEAN_DAYS
+            )
+            
+            # get, delete and return result
+            return cls.objects.filter(end_time__lt=datetime_to).delete()
 
 class SyncProcess(models.Model):
     sync = models.ForeignKey("Sync", on_delete=models.CASCADE)

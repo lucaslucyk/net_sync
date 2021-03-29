@@ -14,7 +14,7 @@ import os
 import json
 
 # current version
-__version__ = "0.11.5"
+__version__ = "0.11.7"
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -269,3 +269,14 @@ PARAM_TYPES = (
     ('python', 'Default'),
     ('json', 'JSON'),
 )
+
+# include traceback in synchistory.
+# works with DEBUG mode only
+LOG_TRACEBACK = USER_SETTINGS.get('LOG_TRACEBACK', False)
+
+# auto delete elements from synchistory (use net_sync cron service)
+LOG_AUTOCLEAN = USER_SETTINGS.get('LOG_AUTOCLEAN', False)
+
+# days offset to delete from synchistory
+# needs LOG_AUTOCLEAN = True
+LOG_AUTOCLEAN_DAYS = USER_SETTINGS.get('LOG_AUTOCLEAN_DAYS', 10)

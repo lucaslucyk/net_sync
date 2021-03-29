@@ -112,7 +112,7 @@ class Client:
         # default structure if not fields recived
         return ct_response.get('employees', [])
 
-    def post_clockings(self, fields: list, clockings: list, **kwargs):
+    def post_clockings(self, clockings: list, fields: list = [], **kwargs):
         """
         Send clockings to Certronic API module with recived parameters.
 
@@ -131,10 +131,11 @@ class Client:
         """
 
         # updating structure with fields
-        clockings = api.apply_fields_def(
-            structure=clockings,
-            fields_def=[api.FieldDefinition.from_json(f) for f in fields]
-        )
+        if fields:
+            clockings = api.apply_fields_def(
+                structure=clockings,
+                fields_def=[api.FieldDefinition.from_json(f) for f in fields]
+            )
 
         # open api connection with auto-disconnect
         with self.open_connection() as client:

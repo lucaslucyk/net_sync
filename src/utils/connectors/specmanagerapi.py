@@ -90,7 +90,7 @@ class Client:
                 **kwargs
             )
             # get total pages
-            _pages = sm_response.get('response', {}).get('pages', 0)
+            _pages = sm_response.get('response', {}).get('pages', 1)
 
             # aletrnative
             if all_pages and _pages > 1:
@@ -105,11 +105,15 @@ class Client:
                         ).get('response').get('clockings')
                     )
 
-        # apply field def
-        return api.apply_fields_def(
-            structure=sm_response.get('response', {}).get('clockings', []),
-            fields_def=[api.FieldDefinition.from_json(f) for f in fields]
-        )
+        # apply field def or default return
+        if fields:
+            return api.apply_fields_def(
+                structure=sm_response.get('response', {}).get('clockings', []),
+                fields_def=[api.FieldDefinition.from_json(f) for f in fields]
+            )
+
+        # default
+        return sm_response.get('response', {}).get('clockings', [])
 
     def post_employees(self, employees: list, fields: list = [], **kwargs):
         """

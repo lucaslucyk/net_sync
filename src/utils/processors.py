@@ -64,9 +64,6 @@ def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
         KW Elements to pass to the selected operator.
     """
 
-    # list of dict to list of NamedTupleWare
-    #objects = tupleware.tupleware(obj)
-
     # method of operator to execute.
     # 'eq' by default
     method = getattr(operator, operation)
@@ -77,8 +74,6 @@ def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
     #for element in objects:
     for element in obj:
         # get attr value and execute method of operator
-        # res = method(
-        #     rgetattr(element, attribute, None), value, *args, **kwargs)
         res = method(rget(element, attribute, None), value, *args, **kwargs)
         
         # negate if recives 'negative' parameter
@@ -93,8 +88,6 @@ def filter_json(obj: list, attribute: str, value, operation: str = 'eq',
             # append element to out elements
             elements.append(element) if exclude else None
 
-    # return elements
-    #return tupleware.to_dict(elements)
     return elements
 
 
@@ -230,7 +223,7 @@ def time_format(obj: str, fmt: str, **kwargs) -> str:
     """
 
     # parse str to datetime object
-    py_dt = parse(obj, **kwargs)
+    py_dt = parse(obj, **kwargs) if isinstance(obj, str) else obj
 
     # format and return
     return py_dt.strftime(fmt)
@@ -314,6 +307,23 @@ def str_attr(obj, attr: str):
     """
 
     return getattr(obj, attr, None)
+
+def switch(obj, cases: dict, default = None):
+    """
+    Get and return a value from a cases dict with obj key.
+
+    @@ Parameters
+    @cases (dict):
+        Dict with case: value to return. Eg.
+        {
+            "1": "in",
+            "2": "out"
+        }
+    @default (Any):
+        Valur to return if cases doesn't contain a obj case.
+    """
+
+    return cases.get(str(obj), default)
 
 def date_to_ActiveDays(obj, is_active: bool = True):
     """
