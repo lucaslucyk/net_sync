@@ -86,6 +86,14 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             # main process
             with open(LOG_FILE, mode='a+', encoding='utf-8') as logg:
                 try:
+                    # logs cleaning
+                    cl = subprocess.check_call(
+                        ['python', MANAGE_FILE, 'clean_logs'],
+                        stdout=logg,
+                        shell=True
+                    )
+
+                    # run syncs
                     p = subprocess.check_call(
                         ['python', MANAGE_FILE, 'run_syncs'],
                         stdout=logg,
