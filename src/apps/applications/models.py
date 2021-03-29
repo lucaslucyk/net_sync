@@ -7,6 +7,7 @@ import importlib
 
 ### django ###
 from django.db import models
+# from django.db.models import Q
 from django.conf import settings
 from django.utils.timezone import now
 from django.utils.safestring import mark_safe
@@ -15,7 +16,6 @@ from django.utils import timezone
 
 ### own ###
 from utils import connectors
-#from utils.api import SyncMethods
 from utils.processors import rgetattr
 
 ### third ###
@@ -80,7 +80,7 @@ class Sync(models.Model):
         blank=True,
         max_length=255,
         help_text=mark_safe("{} {}{}{}".format(
-            "Can find your expression in",
+            "Find your expression in",
             "<a href='https://crontab.guru/examples.html' target='_blank'>",
             "Crontab Guru",
             "</a>."
@@ -99,34 +99,30 @@ class Sync(models.Model):
         return self.get_synchronize_display()
 
     @classmethod
-    def get_needs_run(cls):
+    def get_needs_run(cls, **kwargs) -> list:
         """ Returns all elements that need to run """
 
-        # get all active syncs
-        syncs = cls.objects.filter(active=True, status='0')
+        def filter_(obj):
+            return obj.needs_run()
 
-        # get needs_run only
-        out_elements = []
-        for sync in syncs:
-            if sync.needs_run():
-                out_elements.append(sync)
-
-        # return elements
-        return out_elements
+        # get all active and needs run syncs
+        return list(filter(
+            filter_,
+            cls.objects.filter(active=True, status__in=('0', '2'))
+        ))
 
     @classmethod
-    def run_needs(cls):
+    def run_needs(cls, **kwargs) -> bool:
         """ Run syncs that needs to run. """
 
-        # get needs_run only
-        syncs = cls.get_needs_run()
-        
-        _isok = True
-        for sync in syncs:
-            if not sync.run():
-                _isok = False
+        # default
+        result = True
 
-        return _isok
+        # get needs_run only
+        for sync in cls.get_needs_run():
+            result = result if sync.run() else False
+
+        return result
 
     def get_last_run(self):
         """ Get last sync history of sync and return end_time property. """
@@ -144,6 +140,7 @@ class Sync(models.Model):
     def get_previous_run(self):
         """
         Get previous sync history of sync and return end_time property.
+        Ignores if end_time is null (is running)
         """
 
         # get last history

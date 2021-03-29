@@ -107,6 +107,8 @@ class SyncHistoryAdmin(admin.ModelAdmin):
         "sync", "get_origin", "get_destiny", "start_time", "end_time", "ok"
     ]
 
+    list_per_page = 100
+
     def has_add_permission(self, request, obj=None):
         return False
 
