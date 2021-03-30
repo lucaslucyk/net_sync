@@ -1,5 +1,12 @@
 # net_sync
-syncs for spec and third software
+
+![python3.9](https://img.shields.io/badge/python-v3.9-blue)
+![django2.2](https://img.shields.io/badge/django-v2.2-blue)
+![winx86/64](https://img.shields.io/badge/OS-win%20x86%2Fx64-lightgrey)
+![winx86/64](https://img.shields.io/badge/license-GPL%20v3-brightgreen)
+
+syncs for SPEC and third party software
+
 
 #### If you use SPECManager (with MSSQL) connection on linux, install system dependencies before installing:
 1. Install system dependencies
